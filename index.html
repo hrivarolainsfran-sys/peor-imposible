@@ -1,0 +1,1489 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="description" content="Juego de fiesta: ordená cinco desgracias del 1 al 5 y adiviná cómo las ordena la víctima. Con un celular o uno cada uno.">
+<meta name="theme-color" content="#5BC0EB">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 40 40%22%3E%3Ccircle cx=%2220%22 cy=%2220%22 r=%2217%22 fill=%22%23FFD23F%22 stroke=%22%231B1B2F%22 stroke-width=%223%22/%3E%3Cpath d=%22M22 6 11 22h7l-2 12 12-17h-7z%22 fill=%22%23FF5D8F%22 stroke=%22%231B1B2F%22 stroke-width=%222.5%22 stroke-linejoin=%22round%22/%3E%3C/svg%3E">
+<style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style>
+<title>Peor Imposible</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Luckiest+Guy&family=Nunito:wght@600;700;800;900&display=swap">
+<style>
+/* Layout: una columna angosta de viñetas de historieta sobre cielo con tramado; todo con contorno de tinta y sombra dura */
+:root{
+  --sky:#5BC0EB; --dots:#4BB3E0; --ink:#1B1B2F; --paper:#FFFFFF; --cream:#FFF6E0; --muted:#24324D;
+  --pink:#FF5D8F; --yellow:#FFD23F; --green:#3DDC97; --orange:#FF8C42; --red:#F94144; --plum:#A0275E; --purple:#9B5DE5; --blue:#3A86FF;
+  --h1:#3DDC97; --h2:#FFD23F; --h3:#FF8C42; --h4:#F94144; --h5:#A0275E;
+  --ok:#3DDC97; --bad:#F94144; --scrim:rgba(27,27,47,.62);
+  --display:"Luckiest Guy","Lilita One",Impact,"Arial Black",system-ui,sans-serif;
+  --body:"Nunito","Trebuchet MS",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --line:3px solid var(--ink);
+  --pop:4px 4px 0 var(--ink);
+  color-scheme:light;
+}
+*{box-sizing:border-box}
+html,body{min-height:100%}
+body{
+  background-color:var(--sky);
+  background-image:radial-gradient(var(--dots) 2.2px, transparent 2.7px);
+  background-size:22px 22px;
+  color:var(--ink); font-family:var(--body); font-size:16px; line-height:1.45; font-weight:600;
+  -webkit-tap-highlight-color:transparent;
+}
+.wrap{
+  max-width:560px; margin:0 auto;
+  padding-left:max(16px, env(safe-area-inset-left, 0px));
+  padding-right:max(16px, env(safe-area-inset-right, 0px));
+  padding-block:14px 44px;
+  display:flex; flex-direction:column; gap:18px;
+}
+.wrap.enter > *{animation:rise .38s cubic-bezier(.2,1.4,.4,1) both}
+.wrap.enter > *:nth-child(2){animation-delay:.04s} .wrap.enter > *:nth-child(3){animation-delay:.08s}
+.wrap.enter > *:nth-child(4){animation-delay:.12s} .wrap.enter > *:nth-child(5){animation-delay:.16s}
+.wrap.enter > *:nth-child(n+6){animation-delay:.2s}
+h1,h2,h3{font-family:var(--display); font-weight:400; margin:0; text-wrap:balance; letter-spacing:.02em}
+h1{font-size:clamp(2.2rem, 10vw, 3rem); line-height:1; color:var(--paper); -webkit-text-stroke:2px var(--ink); paint-order:stroke fill; text-shadow:3px 3px 0 var(--ink)}
+h2{font-size:1.55rem; line-height:1.05; color:var(--ink)}
+p{margin:0}
+.eyebrow{font-size:.76rem; font-weight:900; text-transform:uppercase; letter-spacing:.12em; color:var(--muted)}
+.hint{color:var(--muted); font-size:.93rem}
+.stack{display:flex; flex-direction:column; gap:10px}
+.center{text-align:center; align-items:center}
+.wait{color:var(--ink); text-align:center; font-weight:800; padding:14px; background:var(--paper); border:3px dashed var(--ink); border-radius:18px}
+.err{color:var(--red); font-weight:900; background:var(--paper); border:var(--line); border-radius:12px; padding:8px 12px}
+
+/* top bar */
+.top{display:flex; align-items:center; gap:8px}
+.brand{font-family:var(--display); font-size:1.2rem; color:var(--paper); -webkit-text-stroke:1.5px var(--ink); paint-order:stroke fill; text-shadow:2px 2px 0 var(--ink); margin-right:auto; white-space:nowrap; letter-spacing:.03em}
+.brand span{color:var(--yellow)}
+.pill{font-size:.8rem; font-weight:900; padding:5px 10px; border-radius:999px; background:var(--paper); border:2.5px solid var(--ink); color:var(--ink); font-variant-numeric:tabular-nums; white-space:nowrap}
+.pill.hot{background:var(--pink); color:var(--paper)}
+.iconbtn{font:900 .85rem var(--body); color:var(--ink); background:var(--paper); border:2.5px solid var(--ink); border-radius:12px; padding:6px 10px; cursor:pointer; display:inline-flex; align-items:center; gap:6px; min-height:38px; box-shadow:2px 3px 0 var(--ink)}
+.iconbtn:active{transform:translate(2px,2px); box-shadow:0 1px 0 var(--ink)}
+.iconbtn svg{width:18px; height:18px; display:block}
+.banner{background:var(--red); color:var(--paper); border:var(--line); border-radius:14px; padding:10px 12px; font-weight:900; font-size:.92rem; box-shadow:var(--pop)}
+
+/* buttons */
+.btn{
+  font-family:var(--display); font-size:1.35rem; letter-spacing:.04em; line-height:1.1;
+  border:var(--line); border-radius:18px; padding:15px 22px 13px; width:100%;
+  background:var(--pink); color:var(--paper); cursor:pointer;
+  -webkit-text-stroke:1.2px var(--ink); paint-order:stroke fill; text-shadow:2px 2px 0 var(--ink);
+  box-shadow:0 6px 0 var(--ink); transition:transform .08s, box-shadow .08s;
+}
+.btn:active{transform:translateY(4px); box-shadow:0 2px 0 var(--ink)}
+.btn[disabled]{opacity:.45; cursor:not-allowed; transform:none; filter:grayscale(.4)}
+.btn.ghost{background:var(--paper); color:var(--ink); -webkit-text-stroke:0; text-shadow:none; font-size:1.15rem}
+.btn.yellow{background:var(--yellow); color:var(--ink); -webkit-text-stroke:0; text-shadow:none}
+@media (hover:hover){ .btn:not([disabled]):hover{animation:wiggle .35s ease-in-out} }
+.link{background:none; border:0; color:var(--ink); text-decoration:underline; text-decoration-thickness:2px; text-underline-offset:3px; font:800 .95rem var(--body); padding:8px; cursor:pointer; align-self:center}
+button:focus-visible, input:focus-visible, textarea:focus-visible, summary:focus-visible{outline:4px solid var(--yellow); outline-offset:3px}
+
+/* home */
+.hero{display:flex; flex-direction:column; gap:16px; padding-top:20px}
+.logo{font-family:var(--display); font-size:clamp(3rem, 15.5vw, 6rem); line-height:.9; margin:4px 0 6px; color:var(--yellow); -webkit-text-stroke:4px var(--ink); paint-order:stroke fill; text-shadow:6px 6px 0 var(--ink); letter-spacing:.02em}
+.logo > span{display:block; width:max-content; max-width:100%}
+.logo > span:first-child{transform:rotate(-4deg); animation:bounceIn .6s cubic-bezier(.2,1.6,.4,1) both}
+.logo > span + span{color:var(--pink); transform:rotate(2deg); animation:bounceIn .6s .12s cubic-bezier(.2,1.6,.4,1) both}
+.lede{font-size:1.15rem; max-width:32ch; font-weight:800; background:var(--paper); border:var(--line); border-radius:18px; padding:12px 14px; box-shadow:var(--pop); position:relative}
+.lede::after{content:""; position:absolute; left:28px; bottom:-13px; width:20px; height:20px; background:var(--paper); border-right:var(--line); border-bottom:var(--line); transform:rotate(45deg) skew(10deg,10deg)}
+.scale{display:grid; grid-template-columns:repeat(5,1fr); gap:6px}
+.scale div{border-radius:14px; padding:8px 2px 6px; text-align:center; background:var(--hc); color:var(--ht); border:var(--line); box-shadow:2px 3px 0 var(--ink)}
+.scale b{display:block; font-family:var(--display); font-weight:400; font-size:1.7rem; line-height:1}
+.scale small{font-size:.68rem; font-weight:900}
+.modes{display:grid; gap:12px}
+.mode{display:grid; grid-template-columns:auto 1fr; gap:2px 14px; align-items:center; text-align:left; background:var(--paper); color:var(--ink); border:var(--line); border-radius:20px; padding:14px 16px; cursor:pointer; font:inherit; box-shadow:0 6px 0 var(--ink)}
+.mode:active{transform:translateY(4px); box-shadow:0 2px 0 var(--ink)}
+.mode.main{background:var(--yellow)}
+.mode svg{grid-row:span 2; width:46px; height:46px}
+.mode b{font-family:var(--display); font-weight:400; font-size:1.35rem; line-height:1.1; letter-spacing:.03em}
+.mode small{font-size:.9rem; font-weight:700; color:var(--muted)}
+.mode[disabled]{opacity:.5; cursor:not-allowed}
+details.box{background:var(--paper); border:var(--line); border-radius:18px; padding:4px 16px; box-shadow:var(--pop)}
+details.box summary{cursor:pointer; font-weight:900; padding:12px 0; list-style-position:inside}
+details.box[open]{padding-bottom:16px}
+.rules{margin:0; padding-left:1.3em; display:flex; flex-direction:column; gap:8px}
+.rules li::marker{color:var(--pink); font-family:var(--display)}
+.meta{display:flex; gap:8px; flex-wrap:wrap}
+.meta span{font-size:.82rem; font-weight:900; color:var(--ink); background:var(--paper); border:2.5px solid var(--ink); border-radius:999px; padding:4px 10px}
+
+/* setup */
+.plist{list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:10px}
+.plist li{display:flex; align-items:center; gap:10px; background:var(--paper); border:var(--line); border-radius:16px; padding:6px 6px 6px 12px; min-height:54px; box-shadow:3px 3px 0 var(--ink)}
+.plist .tag{font-size:.75rem; font-weight:900; color:var(--muted); margin-left:auto; padding-right:8px}
+.plist .nm{font-weight:900; font-size:1.05rem; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
+.dot{width:18px; height:18px; border-radius:50%; background:var(--pc); border:2.5px solid var(--ink); flex:none}
+.plist input{flex:1; min-width:0; background:transparent; border:0; color:var(--ink); font:800 1.08rem var(--body); padding:10px 4px}
+.plist input::placeholder{color:var(--muted); opacity:.55}
+.rm{background:transparent; border:0; color:var(--ink); font:900 1.5rem var(--body); width:40px; height:40px; border-radius:10px; cursor:pointer}
+.rm[disabled]{opacity:.2}
+.stepper{display:flex; align-items:center; gap:14px; background:var(--paper); border:var(--line); border-radius:16px; padding:10px 12px; box-shadow:3px 3px 0 var(--ink)}
+.stepper button{width:46px; height:46px; border-radius:14px; border:var(--line); background:var(--yellow); color:var(--ink); font:400 1.6rem var(--display); cursor:pointer; box-shadow:0 3px 0 var(--ink)}
+.stepper button:active{transform:translateY(2px); box-shadow:0 1px 0 var(--ink)}
+.stepper button[disabled]{opacity:.35; background:var(--paper)}
+.stepper b{font-family:var(--display); font-weight:400; font-size:2rem; min-width:1.4em; text-align:center; font-variant-numeric:tabular-nums}
+.stepper p{flex:1; color:var(--muted); font-size:.92rem}
+.decks{display:grid; grid-template-columns:1fr 1fr; gap:10px}
+.deck{text-align:left; background:var(--paper); color:var(--ink); border:var(--line); border-radius:16px; padding:10px; cursor:pointer; font:inherit; display:grid; grid-template-columns:auto 1fr; gap:2px 10px; align-items:center; min-width:0; box-shadow:3px 3px 0 var(--ink); opacity:.6; transition:transform .12s, opacity .12s}
+.deck .dicon{grid-row:span 2; width:38px; height:38px; display:block}
+.deck b{font-weight:900; font-size:.95rem; line-height:1.15}
+.deck small{color:var(--muted); font-size:.74rem; line-height:1.2; font-weight:700}
+.deck.on{background:var(--cream); opacity:1; transform:rotate(-1deg)}
+.deck.on:nth-child(even){transform:rotate(1deg)}
+.deck[disabled]{cursor:default}
+.switch{display:flex; align-items:center; gap:12px; background:var(--paper); border:var(--line); border-radius:16px; padding:12px; color:var(--ink); font:inherit; text-align:left; cursor:pointer; width:100%; box-shadow:3px 3px 0 var(--ink)}
+.switch[disabled]{cursor:default}
+.switch span{flex:1; min-width:0}
+.switch b{display:block; font-weight:900}
+.switch small{color:var(--muted); font-size:.85rem; font-weight:700}
+.knob{flex:none; width:54px; height:32px; border-radius:16px; background:var(--paper); border:var(--line); position:relative; transition:background .15s}
+.knob::after{content:""; position:absolute; top:2px; left:2px; width:22px; height:22px; border-radius:50%; background:var(--ink); transition:transform .18s cubic-bezier(.2,1.6,.4,1)}
+.switch[aria-checked="true"] .knob{background:var(--green)}
+.switch[aria-checked="true"] .knob::after{transform:translateX(22px)}
+textarea, .field{width:100%; background:var(--paper); border:var(--line); border-radius:14px; color:var(--ink); font:700 1rem/1.4 var(--body); padding:12px; box-shadow:inset 0 3px 0 rgba(27,27,47,.08)}
+textarea{min-height:110px; resize:vertical}
+.field.code{font:400 2rem var(--display); letter-spacing:.3em; text-transform:uppercase; text-align:center; padding:10px}
+.or{display:flex; align-items:center; gap:10px; color:var(--ink); font-size:.95rem; font-family:var(--display); letter-spacing:.05em}
+.or::before,.or::after{content:""; flex:1; height:3px; border-radius:2px; background:var(--ink)}
+
+/* lobby */
+.codebox{background:var(--paper); border:var(--line); border-radius:22px; padding:18px; text-align:center; display:flex; flex-direction:column; gap:8px; align-items:center; box-shadow:var(--pop)}
+.code{font-family:var(--display); font-size:3.8rem; letter-spacing:.16em; line-height:1; color:var(--yellow); -webkit-text-stroke:3px var(--ink); paint-order:stroke fill; text-shadow:4px 4px 0 var(--ink); padding-left:.16em}
+.invite{display:grid; grid-template-columns:1fr; gap:8px; width:100%}
+
+/* wheel */
+.vname{color:var(--pc) !important}
+.wheel{position:relative; width:min(80vw, 330px); max-width:100%; aspect-ratio:1; margin:10px auto 6px}
+.wheel-rot{width:100%; height:100%; will-change:transform; filter:drop-shadow(5px 6px 0 var(--ink))}
+.wheel svg{display:block; width:100%; height:100%}
+.pointer{position:absolute; left:50%; top:-16px; transform:translateX(-50%); width:44px; height:52px; z-index:2}
+.modbox{display:flex; gap:14px; align-items:center; background:var(--paper); border:var(--line); border-radius:18px; padding:14px; text-align:left; box-shadow:var(--pop)}
+.modsym{flex:none; width:60px; height:60px; border-radius:16px; display:grid; place-items:center; background:var(--mc); color:var(--ink); font-family:var(--display); font-size:1.5rem; border:var(--line); box-shadow:2px 3px 0 var(--ink)}
+.modbox strong{font-family:var(--display); font-weight:400; font-size:1.4rem; display:block; letter-spacing:.03em}
+.modbox p{color:var(--muted); font-size:.95rem}
+.modbox.pop{animation:bounceIn .5s cubic-bezier(.2,1.6,.4,1)}
+.modtag{display:inline-flex; align-items:center; gap:8px; font-size:.85rem; font-weight:900; color:var(--ink)}
+.modtag i{font-style:normal; font-family:var(--display); background:var(--mc); color:var(--ink); border:2px solid var(--ink); border-radius:8px; padding:2px 8px 0}
+
+/* cards */
+.cards{list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:14px}
+.card{background:var(--cream); color:var(--ink); border:var(--line); border-radius:18px; padding:14px; display:grid; grid-template-columns:auto 1fr auto; gap:12px; align-items:start; box-shadow:5px 5px 0 var(--ink)}
+.cards > li:nth-child(odd) .card{transform:rotate(-1deg)}
+.cards > li:nth-child(even) .card{transform:rotate(1deg)}
+.letter{width:38px; height:38px; border-radius:50%; background:var(--yellow); color:var(--ink); border:var(--line); display:grid; place-items:center; font-family:var(--display); font-size:1.2rem; padding-top:3px}
+.card p{font-weight:900; font-size:1.1rem; line-height:1.25; padding-top:6px; min-width:0}
+.swap{background:var(--paper); border:2.5px solid var(--ink); color:var(--ink); border-radius:10px; font:900 .78rem var(--body); padding:6px 9px; cursor:pointer; box-shadow:2px 2px 0 var(--ink)}
+.card.rank, .card.big{grid-template-columns:auto 1fr}
+.card .chips{grid-column:1 / -1}
+.card.big{animation:flipIn .45s cubic-bezier(.2,1.3,.4,1) both; transform-origin:center}
+.card.big p{font-size:1.45rem; padding-top:3px}
+
+/* rating chips */
+.h1{--hc:var(--h1); --ht:var(--ink)} .h2{--hc:var(--h2); --ht:var(--ink)} .h3{--hc:var(--h3); --ht:var(--ink)}
+.h4{--hc:var(--h4); --ht:var(--paper)} .h5{--hc:var(--h5); --ht:var(--paper)}
+.chips{display:grid; grid-template-columns:repeat(5, 1fr); gap:6px}
+.chip{border:2.5px solid var(--ink); background:var(--paper); color:var(--ink); border-radius:14px; padding:7px 2px 9px; display:flex; flex-direction:column; align-items:center; gap:1px; cursor:pointer; min-width:0; box-shadow:inset 0 -7px 0 var(--hc)}
+.chip b{font-family:var(--display); font-weight:400; font-size:1.55rem; line-height:1}
+.chip small{font-size:.64rem; font-weight:900; white-space:nowrap}
+.chip.on{background:var(--hc); color:var(--ht); transform:translateY(-3px) rotate(-2deg); box-shadow:0 4px 0 var(--ink)}
+.chip.on.just{animation:chipPop .3s cubic-bezier(.2,1.8,.4,1)}
+.chip.h4.on b,.chip.h5.on b{-webkit-text-stroke:1px var(--ink); paint-order:stroke fill}
+.chip.used{opacity:.3}
+.tok{display:inline-grid; place-items:center; width:40px; height:40px; border-radius:50%; background:var(--hc); color:var(--ht); border:2.5px solid var(--ink); font-family:var(--display); font-size:1.3rem; padding-top:3px; flex:none}
+.tok.lg{width:88px; height:88px; font-size:3rem; border-width:4px; box-shadow:4px 4px 0 var(--ink); animation:flipIn .55s .15s cubic-bezier(.2,1.5,.4,1) both}
+
+/* handoff */
+.handoff{display:flex; flex-direction:column; align-items:center; text-align:center; gap:14px; padding-top:24px}
+.avatar{width:118px; height:118px; border-radius:50%; background:var(--pc); color:var(--ink); border:4px solid var(--ink); display:grid; place-items:center; font-family:var(--display); font-size:3.6rem; padding-top:6px; box-shadow:6px 6px 0 var(--ink); animation:bounceIn .5s cubic-bezier(.2,1.6,.4,1) both}
+.handoff h1{font-size:clamp(2.7rem, 13vw, 3.8rem); color:var(--pc)}
+.handoff .role{font-size:1.1rem; max-width:30ch; background:var(--paper); border:var(--line); border-radius:16px; padding:10px 14px; box-shadow:3px 3px 0 var(--ink)}
+.handoff .btn{margin-top:10px}
+.turns{display:flex; gap:6px; justify-content:center; flex-wrap:wrap}
+.turns i{width:14px; height:14px; border-radius:50%; background:var(--paper); border:2.5px solid var(--ink)}
+.turns i.done{background:var(--ink)}
+.turns i.now{background:var(--pc); transform:scale(1.25)}
+.pending{display:flex; flex-wrap:wrap; gap:8px; justify-content:center}
+.pending span{display:inline-flex; align-items:center; gap:6px; background:var(--paper); border:2.5px solid var(--ink); border-radius:999px; padding:5px 12px 5px 6px; font-weight:900; font-size:.9rem}
+.pending span .dot{width:14px; height:14px; border-width:2px}
+.pending span.done{opacity:.45; text-decoration:line-through}
+
+/* reveal */
+.truth{display:flex; align-items:center; gap:16px; background:var(--paper); border:var(--line); border-radius:18px; padding:14px; box-shadow:var(--pop)}
+.truth p{font-size:1.05rem}
+.truth strong{font-family:var(--display); font-weight:400; font-size:1.6rem; display:block; line-height:1.1; letter-spacing:.03em}
+.guesses{list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:10px}
+.guesses li{display:flex; align-items:center; gap:12px; background:var(--paper); border:var(--line); border-radius:16px; padding:8px 12px; box-shadow:3px 3px 0 var(--ink); animation:slideIn .4s cubic-bezier(.2,1.4,.4,1) both; animation-delay:calc(.5s + var(--i) * 120ms)}
+.guesses .nm{flex:1; min-width:0; font-weight:900; overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
+.guesses .tok{width:36px; height:36px; font-size:1.1rem}
+.mark{width:38px; height:38px; border-radius:50%; display:grid; place-items:center; font-weight:900; font-size:1.2rem; flex:none; border:2.5px solid var(--ink)}
+.mark.ok{background:var(--ok); color:var(--ink); transform:rotate(-8deg)}
+.mark.bad{background:var(--paper); color:var(--red)}
+.dots{display:flex; gap:6px; justify-content:center}
+.dots i{width:30px; height:10px; border-radius:5px; background:var(--paper); border:2px solid var(--ink)}
+.dots i.done{background:var(--pink)}
+.defend{display:flex; align-items:center; gap:14px; background:var(--yellow); border:var(--line); border-radius:18px; padding:12px 14px; box-shadow:var(--pop); animation:bounceIn .4s cubic-bezier(.2,1.6,.4,1)}
+.ring{flex:none; width:68px; height:68px; border-radius:50%; display:grid; place-items:center; border:var(--line); background:conic-gradient(var(--pink) calc(var(--p, 1) * 360deg), var(--paper) 0)}
+.ring b{width:46px; height:46px; border-radius:50%; background:var(--paper); border:2.5px solid var(--ink); display:grid; place-items:center; font-family:var(--display); font-weight:400; font-size:1.5rem; padding-top:3px; font-variant-numeric:tabular-nums}
+.defend p{font-weight:900}
+.defend.over{background:var(--paper)}
+
+/* score */
+.rows{list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:10px}
+.rows li{display:grid; grid-template-columns:auto 1fr auto; align-items:center; gap:12px; background:var(--paper); border:var(--line); border-radius:16px; padding:10px 12px; box-shadow:3px 3px 0 var(--ink)}
+.rows .who{min-width:0}
+.rows .who b{display:block; font-weight:900; overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
+.rows .who small{color:var(--muted); font-size:.84rem}
+.rows .pts{font-family:var(--display); font-size:1.8rem; color:var(--pink); -webkit-text-stroke:1.5px var(--ink); paint-order:stroke fill; text-shadow:2px 2px 0 var(--ink); font-variant-numeric:tabular-nums}
+.rows li.vic{border-style:dashed; box-shadow:none; background:var(--cream)}
+.rows li.full{background:var(--yellow); transform:rotate(-1deg)}
+.standings{list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:12px}
+.standings li{display:grid; grid-template-columns:1.8em 1fr auto; gap:10px; align-items:center}
+.standings .pos{font-family:var(--display); color:var(--ink); font-size:1.3rem; text-align:center}
+.standings li:first-child .pos{color:var(--yellow); -webkit-text-stroke:1.5px var(--ink); paint-order:stroke fill; font-size:1.6rem}
+.standings .bar{display:flex; flex-direction:column; gap:4px; min-width:0}
+.standings .bar span{font-weight:900; overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
+.standings .bar i{display:block; height:14px; border-radius:7px; background:var(--pc); border:2.5px solid var(--ink); width:var(--w); min-width:14px; transition:width .6s cubic-bezier(.2,1.3,.4,1)}
+.standings .sc{font-family:var(--display); font-size:1.6rem; font-variant-numeric:tabular-nums}
+.panel{background:var(--paper); border:var(--line); border-radius:20px; padding:16px; display:flex; flex-direction:column; gap:14px; box-shadow:var(--pop)}
+
+/* final */
+.winner{display:flex; flex-direction:column; align-items:center; text-align:center; gap:10px; padding-top:16px}
+.winner h1{font-size:clamp(3rem, 14vw, 4.4rem); color:var(--pc)}
+.crown{width:84px; height:52px; margin-bottom:-26px; position:relative; z-index:1; animation:bounceIn .6s .2s cubic-bezier(.2,1.6,.4,1) both}
+.stats{display:grid; grid-template-columns:1fr 1fr; gap:12px}
+.stat{background:var(--paper); border:var(--line); border-radius:18px; padding:14px; display:flex; flex-direction:column; gap:6px; min-width:0; box-shadow:3px 3px 0 var(--ink); animation:rise .45s cubic-bezier(.2,1.4,.4,1) both; animation-delay:calc(var(--i) * 90ms)}
+.stat:nth-child(4n+1){background:var(--cream)} .stat:nth-child(4n+2){transform:rotate(1deg)} .stat:nth-child(4n+3){transform:rotate(-1deg)}
+.stat.wide{grid-column:1 / -1; background:var(--yellow)}
+.stat .eyebrow{color:var(--pink)}
+.stat.wide .eyebrow{color:var(--ink)}
+.stat b{font-family:var(--display); font-weight:400; font-size:1.35rem; line-height:1.15; letter-spacing:.02em; overflow-wrap:anywhere}
+.stat.wide b{font-family:var(--body); font-weight:900; font-size:1.1rem; background:var(--cream); border:2.5px solid var(--ink); border-radius:12px; padding:10px 12px}
+.stat p{color:var(--muted); font-size:.88rem}
+
+/* sheet */
+.sheet{position:fixed; inset:0; z-index:20; background:var(--scrim); display:flex; align-items:flex-end; justify-content:center}
+.sheet-in{
+  background:var(--sky); background-image:radial-gradient(var(--dots) 2.2px, transparent 2.7px); background-size:22px 22px;
+  width:100%; max-width:560px; max-height:88vh; overflow:auto;
+  border-radius:24px 24px 0 0; border:var(--line); border-bottom:0;
+  padding-left:max(16px, env(safe-area-inset-left, 0px));
+  padding-right:max(16px, env(safe-area-inset-right, 0px));
+  padding-top:16px; padding-bottom:calc(24px + env(safe-area-inset-bottom, 0px));
+  display:flex; flex-direction:column; gap:18px; animation:sheetUp .3s cubic-bezier(.2,1.2,.4,1);
+}
+.sheet-head{display:flex; align-items:center; justify-content:space-between}
+.modlist{list-style:none; margin:0; padding:12px; display:flex; flex-direction:column; gap:10px; background:var(--paper); border:var(--line); border-radius:18px}
+.modlist li{display:flex; gap:12px; align-items:center}
+.modlist .modsym{width:46px; height:46px; font-size:1.1rem; border-radius:12px}
+.modlist p{font-size:.92rem; color:var(--muted)}
+.modlist b{color:var(--ink)}
+.danger{display:flex; flex-direction:column; gap:10px; border-top:3px dashed var(--ink); padding-top:14px}
+.row2{display:grid; grid-template-columns:1fr 1fr; gap:10px}
+.toast{position:fixed; left:50%; bottom:calc(20px + env(safe-area-inset-bottom, 0px)); transform:translateX(-50%); z-index:30; background:var(--ink); color:var(--paper); font-weight:900; padding:10px 16px; border-radius:999px; animation:bounceIn .35s cubic-bezier(.2,1.6,.4,1)}
+#confetti{position:fixed; inset:0; width:100%; height:100%; pointer-events:none; z-index:40}
+
+@keyframes rise{from{transform:translateY(14px) scale(.98); opacity:0} to{opacity:1}}
+@keyframes bounceIn{0%{transform:scale(.4); opacity:0} 70%{opacity:1} 100%{opacity:1}}
+@keyframes flipIn{from{transform:perspective(600px) rotateY(90deg); opacity:.2} to{opacity:1}}
+@keyframes slideIn{from{transform:translateX(-24px); opacity:0} to{opacity:1}}
+@keyframes chipPop{0%{transform:scale(.8)} 100%{transform:translateY(-3px) rotate(-2deg)}}
+@keyframes wiggle{0%,100%{transform:rotate(0)} 30%{transform:rotate(-1.5deg)} 65%{transform:rotate(1.5deg)}}
+@keyframes sheetUp{from{transform:translateY(40%)} to{transform:none}}
+@media (max-width:360px){ .decks, .stats{grid-template-columns:1fr} }
+@media (prefers-reduced-motion: reduce){
+  *{animation:none !important; transition:none !important}
+}
+</style>
+</head>
+<body>
+
+<div id="app" class="wrap" aria-live="polite"></div>
+<div id="sheet" class="sheet" hidden></div>
+
+<script>
+/* ================= contenido ================= */
+const DECKS = [
+{id:'clasico', name:'Clásicos', desc:'Peligros, viajes y mala suerte', cards:[
+"Te persigue un perro enorme","Te pica una medusa en la cara","Te roban la bici","Se te inunda la casa","Hay una araña gigante en tu almohada",
+"Te quedás varado en la ruta sin señal","Te perdés de noche en el medio del bosque","Te pica una avispa en la lengua","Tenés hipo durante una semana",
+"Ganás la lotería y perdés el billete","Te quedás sin nafta en la autopista","Te cae una maceta en el pie","Te persigue un enjambre de abejas",
+"Encontrás un ratón en tu cama","Tu vuelo se demora doce horas","La montaña rusa se frena con vos cabeza abajo",
+"Te toca un bebé llorando al lado en un vuelo de catorce horas","Te enterás de que tu casa está embrujada","Te quemás con el sol y quedás como un camarón",
+"Te muerde un mono en vacaciones","Te cae un coco en la cabeza","El GPS te manda directo a un río","Te ataca un ganso",
+"Llueve toda la noche y tu carpa se llena de agua","Te agarrás varicela de grande","Chocás el auto nuevo el primer día","Te secuestran los extraterrestres",
+"Te persigue un tiburón","Te muerde una serpiente","Caés en arenas movedizas","Te perdés en el desierto","Te rompés una pierna esquiando",
+"Se te cae el helado al primer lengüetazo","Te pica un mosquito en el párpado","Un gallo canta a las cinco debajo de tu ventana",
+"Quedás encerrado afuera de tu casa en calzones","La policía te persigue por error","Pasás una noche en un calabozo",
+"Una gaviota te roba el sánguche en la playa","Se te vuela la carpa en medio de una tormenta","Te persigue un oso",
+"Mirás una película de terror solo en una cabaña","Escuchás pasos en el techo de noche","El cloro te deja el pelo verde",
+"Se corta la luz en una noche de tormenta y estás solo","Te tenés que tirar en paracaídas","Quedás varado en una isla desierta",
+"Te quedás sin plata en el exterior","Estás enfermo el día de tu cumpleaños","Te quedás pelado de un día para el otro",
+"Se te desarma el paraguas en plena tormenta","Encontrás una víbora en tu zapatilla","Tu gato te despierta todas las noches a las cuatro",
+"Te sentás sobre tus anteojos","Se te cae el anillo de compromiso en una alcantarilla","Te despertás en el medio de una operación",
+"Te subís a un bote que hace agua","Se te pega la lengua a un poste congelado","Te despertás y ya salió tu vuelo","Perdés las llaves a las tres de la mañana",
+"Tu perro se come tu pasaporte el día antes del viaje","Te intoxicás con sushi","Te tatúan tu nombre con un error de ortografía",
+"Te cortan el pelo con forma de hongo","Te despiertan con un balde de agua helada","Te tirás a la pileta y el agua está helada",
+"Pisás un juguete de plástico descalzo a la noche","Te pisan el pie con un taco aguja","Se te atraganta un hueso de pollo",
+"Vivís el mismo lunes una y otra vez","No podés parar de estornudar","Te muerde tu propio perro","Te dejan plantado en una cita",
+"Llegás tarde a tu propia boda","Te toca dormir en el suelo de un aeropuerto","Te muerde una garrapata y no te das cuenta por días",
+"Quedás encerrado en un ascensor ocho horas","Te cae un rayo a diez metros","Te perdés en un shopping gigante y no encontrás la salida",
+"Te olvidás la malla y ya estás en la pileta"]},
+{id:'arg', name:'Bien argentino', desc:'Colectivos, mate, asado y trámites', cards:[
+"Se te quema el asado delante de todos","Te dormís en el colectivo y terminás en la otra punta de la ciudad","Tenés que vivir un año sin mate",
+"Tenés que vivir un año sin dulce de leche","Tu equipo se va al descenso","Tu equipo pierde la final por penales","Te pasan un mate re lavado",
+"Un carpincho se mete en tu casa","Te persigue un ñandú","Hacés un trámite que dura seis horas","Tenés que ir al banco un lunes a la mañana",
+"Perdés el último colectivo de la noche","Se rompe el aire acondicionado en enero","Te quedás sin agua caliente en julio",
+"Hacés un viaje de veinte horas en micro","Alguien come huevo duro al lado tuyo en el micro","Tu tío cuenta chistes malos toda la cena de Navidad",
+"Te toca bailar el vals con todos los tíos","Tenés una cumbia pegada en la cabeza durante un mes","Te para un control y no tenés el registro",
+"Te quedás sin yerba un domingo a la noche","El colectivo pasa lleno tres veces seguidas","Hacés una fila de cuarenta personas para pagar una boleta",
+"Llega la factura de luz de enero","Se corta el agua el día que hay asado en tu casa","Te ponen pasas de uva en la ensalada rusa",
+"Te sirven una milanesa recocida y seca","Te toca cebar a vos toda la tarde","Te toca el asiento del medio en el viaje a la costa",
+"Una piedra de la ruta te rompe el parabrisas","Un corte en la avenida te hace llegar tarde a todo","Llueve justo el día del asado",
+"Tu vecino pone cumbia a todo volumen el domingo a la mañana","Te sacan el último pedazo de pizza","El delivery llega frío dos horas tarde",
+"Te dan el vuelto en caramelos","La heladera se rompe en plena ola de calor","Se corta la luz en plena ola de calor","Un auto pasa por un charco y te empapa",
+"Te olvidás el termo en la playa","Te quedás sin señal justo en el penal decisivo","Te equivocás de micro y terminás en otra provincia",
+"Alquilás una casa en la costa que queda a cuarenta cuadras del mar","Los mosquitos no te dejan dormir en el campo","Pisás un aguaviva en la orilla",
+"Tu abuela te gana al truco toda la noche","Te toca lavar los platos del asado de veinte personas","Se te vuela la sombrilla y golpea a un desconocido",
+"Te dan la empanada de verdura cuando pediste de carne","Abrís la heladera y no hay nada"]},
+{id:'laburo', name:'Trabajo y estudio', desc:'Jefes, exámenes y reuniones', cards:[
+"Tu jefe ve tu historial de búsqueda","Te echan del trabajo por mail","Tenés que dar una charla en inglés sin preparar nada",
+"Te toman oral y no estudiaste nada","Circula en el trabajo una foto tuya de los quince","Tu jefe te pide seguirte en Instagram",
+"Te agarran copiándote en un examen final","Se te cae un diente en una entrevista de trabajo","Te toca el peor compañero en un trabajo en grupo",
+"Volvés a cursar un año de secundaria","Tenés que rendir matemática otra vez","Te enterás de que el examen era hoy",
+"Te manchás la camisa blanca con tuco antes de una entrevista","Se te escapa un eructo en una reunión importante",
+"Tu jefe te ve durmiendo en la videollamada","Te olvidás de apagar la cámara y vas al baño","Quedás encerrado en un ascensor con tu jefe",
+"Tenés que leer un poema tuyo en voz alta frente al curso","La compu se reinicia y perdés todo el trabajo del día","Te toca trabajar el 24 a la noche",
+"Tenés todos los días una reunión que podría haber sido un mail","Te ponen a cargo del asado de fin de año de la oficina",
+"Te cambian el escritorio al lado del baño","Mandás un mail a toda la empresa con un error","Tu jefe responde todos tus mensajes con un ok",
+"Te descuentan el día por llegar dos minutos tarde","Tenés que presentar el trabajo práctico solo porque nadie más vino",
+"Te piden horas extras un viernes a las seis de la tarde","Llegás a la oficina y era feriado","Te toca el turno de las seis de la mañana todo el año",
+"Tu compañero se lleva el crédito por tu idea","Entrás por error a la reunión de otro equipo","Tu profe te pone un 3 por una coma",
+"Te toca exponer primero","Te dan tarea para las vacaciones de invierno","Tu jefe te llama un domingo",
+"Se cae internet en el medio de una entrevista por videollamada","Te asignan a un proyecto que nunca termina",
+"La impresora se traba diez minutos antes de entregar","Tenés que entrenar al que te va a reemplazar",
+"Tu compañero de escritorio come caballa en lata todos los días","Te piden que hagas el discurso de despedida del jefe"]},
+{id:'papelones', name:'Papelones', desc:'Vergüenza ajena y propia', cards:[
+"Quedás encerrado en un ascensor con tu ex","Mandás un audio de cuatro minutos al grupo equivocado","Te olvidás el discurso en el casamiento de tu mejor amigo",
+"Llegás disfrazado a una fiesta y nadie más lo está","Se te rompe el pantalón en el colectivo","Tu vieja lee todos tus chats",
+"Te olvidás del cumpleaños de tu pareja","Entrás a la casa del vecino creyendo que es la tuya","Un compañero de trabajo te ve bailando solo por la ventana",
+"Te rechazan la tarjeta en la primera cita","Te convertís en meme nacional","Se te traba el cierre en el baño de un boliche",
+"Te ponen un apodo horrible que te dura para siempre","Te sentás en un chicle con pantalón blanco","Tu mejor amigo se pone de novio con tu ex",
+"Se te escapa un pedo en un ascensor lleno","Te suena el celular a todo volumen en un velorio","Te sacan la foto del documento con los ojos cerrados",
+"Se te cae la torta de cumpleaños antes de servirla","Tapás el inodoro en la casa de tu suegra","Te sale un grano gigante el día de tu casamiento",
+"Tu ex te llama a las cuatro de la mañana","Te llega un mensaje que dice: tenemos que hablar","Tenés que cantar el himno solo en un estadio lleno",
+"Te tropezás arriba de un escenario","Te caés en la calle delante de un montón de gente","Le decís mamá a tu jefa","Le decís te quiero al chico del delivery",
+"Saludás a alguien que en realidad saludaba a otro","Se te traba la cabeza entre las rejas de una baranda","Te confunden con un famoso y te persigue una multitud",
+"Te gritan desde un balcón por error","Te sale un orzuelo el día de las fotos","Tu suegra se muda a tu casa sin fecha de salida",
+"Te mandan al frente en el grupo de la familia","Te despertás con la cara pintada por tus amigos","Te dan un regalo horrible y tenés que fingir que te encanta",
+"Vivís un año con tus suegros","Te enamorás de alguien que no sabe que existís","Te convertís en tus viejos","Te olvidás al perro atado en la plaza",
+"Tenés la cara dormida por el dentista y después una cita","Te quedás afónico antes de un show","Criticás a alguien en el chat donde está esa persona",
+"Tu pareja te llama con el nombre de su ex","Aplaudís cuando aterriza el avión y nadie más lo hace","Te agarra un ataque de risa en un momento serio",
+"Te hacen cantar en el karaoke sin saber la letra","Empujás una puerta que decía tirar delante de todos","Se te cae la bandeja entera en el comedor"]},
+{id:'asco', name:'Asco', desc:'Para estómagos fuertes', cards:[
+"Se te cae el celular al inodoro","Pisás caca descalzo","Encontrás una cucaracha en tu plato","Una paloma te hace caca en la cabeza",
+"Te agarrás piojos a los treinta años","Te tragás una mosca andando en bici","Tenés que comer un plato entero de hígado",
+"Encontrás un pelo largo adentro de la empanada","Te despertás con un ciempiés en la oreja","Quedás encerrado en un baño químico",
+"Tomás un trago de leche cortada","Abrís un táper olvidado hace tres meses","Tenés que sacar una bolsa de basura con pescado podrido",
+"Mordés una manzana y aparece media oruga","Alguien te vomita encima en el colectivo","Te tragás un chicle","Te comés un insecto frito en un desafío",
+"Comés algo que estaba vencido hace un mes","Te sale un hongo en el pie","Pisás algo húmedo en el baño de un boliche",
+"Tenés que limpiar el baño de una estación de servicio","Encontrás una curita flotando en la pileta","Te salpica el agua del inodoro",
+"Te estornudan en la cara","Compartís el mate con alguien muy resfriado","Tenés que destapar la pileta de la cocina con la mano",
+"Te sentás en un asiento mojado del colectivo y no sabés qué es","Tu perro te lame después de comer algo raro","Te dan un beso con olor a ajo",
+"Encontrás una uña entre los almohadones del sillón","Se rompe la bolsa de basura en el ascensor","Metés el pie en un zapato con un sapo adentro",
+"Encontrás medias usadas de otro en la almohada del hostel","Tomás de una lata donde se había metido una avispa",
+"Te despertás con la baba del de al lado en tu hombro","Te toca vaciar la trampa de ratones"]},
+{id:'tecno', name:'Celular e internet', desc:'Batería, wifi y chats', cards:[
+"Te quedás sin batería en un país donde no hablás el idioma","Se te parte la pantalla del celular nuevo","Te hackean el WhatsApp",
+"Te vacían la cuenta del banco","Se te borran todas las fotos del celular","Vivís un mes entero sin internet","Te olvidás la contraseña de todas tus cuentas",
+"Tenés 2% de batería y nadie tiene cargador","Se cae el wifi en la última partida","Se corta la llamada en la parte más importante",
+"Te estafan con una compra por internet","Te spoilean el final de tu serie favorita","Aparecen tus fotos de borracho en internet",
+"Le das like sin querer a una foto de hace cinco años de tu ex","Tu mamá te comenta todas las publicaciones","Subís sin querer una foto vergonzosa a tu estado",
+"Te agregan a un grupo de doscientas personas que no conocés","El corrector cambia te quiero por te quemo","Mandás una captura al mismo chat del que hablabas",
+"El celular se pone a actualizar justo antes de salir","Te quedás sin datos en el medio de la ruta","Escuchás la misma canción veinticuatro horas seguidas",
+"Te bloquean la cuenta por poner mal la clave tres veces","El corrector cambia el nombre de tu jefe por un insulto","Te llega un audio de diez minutos",
+"Te despertás con trescientos mensajes en el grupo de la familia","El GPS se queda sin señal en un barrio desconocido",
+"Se te cae el celular en la cara mientras lo usás acostado","Subís para todos una historia que era para mejores amigos",
+"Tu foto de perfil queda con un filtro de perro para siempre","Se borra el chat más importante de tu vida",
+"La compu se actualiza durante dos horas antes de una entrega","Te llama un número desconocido diez veces seguidas"]}
+];
+const ALL_CARDS = DECKS.reduce((n,d)=>n+d.cards.length,0);
+const MODS = [
+  {id:'double', sym:'×2',  name:'Doble',       color:'#FF5D8F', desc:'Todos duplican los puntos de esta ronda.'},
+  {id:'one',    sym:'1+1', name:'El 1 suma',   color:'#3DDC97', desc:'Si acertás la carta que la víctima puso en 1, ganás 1 punto extra.'},
+  {id:'four',   sym:'4+4', name:'El 4 suma',   color:'#FFD23F', desc:'Si acertás la carta que la víctima puso en 4, ganás 4 puntos extra.'},
+  {id:'triple', sym:'×3',  name:'Triple',      color:'#B48CFF', desc:'Todos triplican los puntos de esta ronda.'},
+  {id:'all',    sym:'+5',  name:'Pleno',       color:'#FF8C42', desc:'Si acertás las cinco cartas, ganás 5 puntos extra.'},
+  {id:'sum',    sym:'1-5', name:'Suma fichas', color:'#7CE0FF', desc:'Cada acierto vale el número de esa carta (de 1 a 5) en vez de 1 punto.'}
+];
+const WORD = {1:'Zafa',2:'Feo',3:'Muy feo',4:'Terrible',5:'Lo peor'};
+const PCOL = ['#FF5D8F','#3A86FF','#3DDC97','#B48CFF','#FFD23F','#FF8C42','#00D1B2','#F15BB5','#8AC926','#FFFFFF'];
+const LET = 'ABCDE';
+const KEY = 'peor-imposible-v2';
+const DEFEND_SECS = 20;
+const MAXP = 10;
+const VICTIM_NOTE = 'La víctima gana lo mismo que el mejor de la ronda, extras incluidos.';
+const ICON_PHONE = '<svg viewBox="0 0 40 40" stroke="#1B1B2F" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="11" y="3" width="18" height="34" rx="5" fill="#FFFFFF"/><rect x="14" y="8" width="12" height="20" rx="2" fill="#7CE0FF" stroke-width="2.5"/><path d="M18 32h4" fill="none"/><path d="M31 10q5 4 0 9M34 7q8 7 0 15" fill="none" stroke-width="2.5"/></svg>';
+const ICON_PHONES = '<svg viewBox="0 0 40 40" stroke="#1B1B2F" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="9" width="13" height="24" rx="4" fill="#FF5D8F"/><rect x="25" y="9" width="13" height="24" rx="4" fill="#3DDC97"/><path d="M15 16q5-6 10 0M15 26q5 6 10 0" fill="none" stroke-width="2.5"/><circle cx="20" cy="21" r="2.5" fill="#1B1B2F"/></svg>';
+const ICON_CROWN = '<svg class="crown" viewBox="0 0 84 52" aria-hidden="true"><path d="M8 46 L5 12 L25 28 L42 4 L59 28 L79 12 L76 46 Z" fill="#FFD23F" stroke="#1B1B2F" stroke-width="4" stroke-linejoin="round"/><circle cx="42" cy="32" r="5" fill="#FF5D8F" stroke="#1B1B2F" stroke-width="3"/><circle cx="22" cy="38" r="3.5" fill="#3DDC97" stroke="#1B1B2F" stroke-width="2.5"/><circle cx="62" cy="38" r="3.5" fill="#3A86FF" stroke="#1B1B2F" stroke-width="2.5"/></svg>';
+const DECK_ICON = {
+  clasico:'<svg class="dicon" viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="20" r="17" fill="#FFD23F" stroke="#1B1B2F" stroke-width="3"/><path d="M22 6 11 22h7l-2 12 12-17h-7z" fill="#FFFFFF" stroke="#1B1B2F" stroke-width="2.5" stroke-linejoin="round"/></svg>',
+  arg:'<svg class="dicon" viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="20" r="17" fill="#7CE0FF" stroke="#1B1B2F" stroke-width="3"/><path d="M22 17 29 5" stroke="#1B1B2F" stroke-width="3" stroke-linecap="round"/><path d="M11 16h18l-2 11a6 6 0 0 1-6 5h-2a6 6 0 0 1-6-5z" fill="#C98B4E" stroke="#1B1B2F" stroke-width="2.5" stroke-linejoin="round"/><ellipse cx="20" cy="16" rx="9" ry="2.6" fill="#3DDC97" stroke="#1B1B2F" stroke-width="2.5"/></svg>',
+  laburo:'<svg class="dicon" viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="20" r="17" fill="#FF8C42" stroke="#1B1B2F" stroke-width="3"/><path d="M16 15v-3h8v3" fill="none" stroke="#1B1B2F" stroke-width="2.5" stroke-linejoin="round"/><rect x="9" y="15" width="22" height="15" rx="3" fill="#FFFFFF" stroke="#1B1B2F" stroke-width="2.5"/><path d="M9 21h22" stroke="#1B1B2F" stroke-width="2.5"/></svg>',
+  papelones:'<svg class="dicon" viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="20" r="17" fill="#FF5D8F" stroke="#1B1B2F" stroke-width="3"/><circle cx="14.5" cy="17" r="2.2" fill="#1B1B2F"/><circle cx="25.5" cy="17" r="2.2" fill="#1B1B2F"/><ellipse cx="11.5" cy="23" rx="3" ry="1.8" fill="#FFD23F"/><ellipse cx="28.5" cy="23" rx="3" ry="1.8" fill="#FFD23F"/><path d="M14 27q3-3 6 0t6 0" fill="none" stroke="#1B1B2F" stroke-width="2.5" stroke-linecap="round"/></svg>',
+  asco:'<svg class="dicon" viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="20" r="17" fill="#8AC926" stroke="#1B1B2F" stroke-width="3"/><ellipse cx="13.5" cy="15" rx="6" ry="4" fill="#FFFFFF" stroke="#1B1B2F" stroke-width="2.2" transform="rotate(-30 13.5 15)"/><ellipse cx="26.5" cy="15" rx="6" ry="4" fill="#FFFFFF" stroke="#1B1B2F" stroke-width="2.2" transform="rotate(30 26.5 15)"/><ellipse cx="20" cy="23" rx="5" ry="7" fill="#1B1B2F"/><circle cx="18" cy="17" r="1.6" fill="#F94144"/><circle cx="22" cy="17" r="1.6" fill="#F94144"/></svg>',
+  tecno:'<svg class="dicon" viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="20" r="17" fill="#B48CFF" stroke="#1B1B2F" stroke-width="3"/><rect x="13" y="7" width="14" height="26" rx="3" fill="#FFFFFF" stroke="#1B1B2F" stroke-width="2.5"/><path d="M15 12l5 5-3 3 6 6" fill="none" stroke="#1B1B2F" stroke-width="2" stroke-linejoin="round"/></svg>'
+};
+const ICON_SOUND = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 9h4l5-4v14l-5-4H4z"/><path d="M16.5 8.5a5 5 0 0 1 0 7M19 6a8.5 8.5 0 0 1 0 12"/></svg>';
+const ICON_MUTE = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 9h4l5-4v14l-5-4H4z"/><path d="M17 9l5 6M22 9l-5 6"/></svg>';
+
+/* ================= estado ================= */
+const $app = document.getElementById('app');
+const $sheet = document.getElementById('sheet');
+let G = null;     // estado de la partida (compartido en modo online)
+let H = null;     // datos privados del anfitrión: mazo, historial
+let view = 'home';
+let draft = {names:['','',''], turns:4, touched:false, custom:'', decks:DECKS.map(d=>d.id), teams:false, defend:true};
+let me = {pid:'', name:''};
+let muted = false;
+let savedJoin = null;   // {code} si era invitado en una sala
+let net = {room:undefined, nr:null, code:null, isHost:false, hostSeen:false, hostLost:false, err:'', sentRank:'', actSeq:0, lastG:null, unsub:null, timer:null};
+let sheetOpen = false, confirmEnd = false;
+let myRank = [0,0,0,0,0], myRankKey = '', justPicked = '', lastHTML = '', enterTimer = null;
+let seenSpin = null, animating = false, renderPending = false, lastKey = '', lastFx = '';
+let defendT = {id:null, end:0, k:-1, beeped:0, done:false};
+
+const rid = () => Math.random().toString(36).slice(2,10);
+function esc(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+function shuffle(a){a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
+function defaultTurns(n){return ({3:4,4:3,5:2,6:2,7:2,8:1,9:1,10:1})[n]||2}
+const cleanName = s => String(s||'').replace(new RegExp('[\\u0000-\\u001f\\u200b-\\u200f\\u2028-\\u202e]','g'),'').trim().slice(0,16);
+const mod = id => MODS.find(m=>m.id===id);
+const online = () => !!(G && G.mode==='online');
+const vic = () => G.players[G.victim];
+const pById = id => G.players.find(p=>p.id===id);
+const iAmHost = () => !online() || net.isHost;
+const canFlow = () => !online() || net.isHost || me.pid===vic().id;
+const initial = n => esc((String(n).trim().charAt(0)||'?').toUpperCase());
+
+function save(){
+  try{
+    const game = (G && (G.mode==='local' || net.isHost)) ? {G, H} : null;
+    localStorage.setItem(KEY, JSON.stringify({draft, me, muted, game, join:savedJoin}));
+  }catch(e){}
+}
+function loadSaved(){
+  try{
+    const s = localStorage.getItem(KEY);
+    const d = s ? JSON.parse(s) : {};
+    if(d.draft) draft = Object.assign(draft, d.draft);
+    if(d.me && d.me.pid) me = d.me;
+    muted = !!d.muted;
+    if(d.game && d.game.G && d.game.H){ G = d.game.G; H = d.game.H; }
+    if(d.join && d.join.code) savedJoin = d.join;
+  }catch(e){}
+  if(!me.pid) me.pid = 'u' + rid();
+}
+
+/* ================= sonido y vibración ================= */
+let actx = null;
+function ac(){
+  if(muted) return null;
+  try{
+    actx = actx || new (window.AudioContext || window.webkitAudioContext)();
+    if(actx.state === 'suspended') actx.resume();
+    return actx;
+  }catch(e){ return null; }
+}
+function tone(freq, dur, type='sine', vol=.2, when=0, slideTo=0){
+  const a = ac(); if(!a) return;
+  try{
+    const t = a.currentTime + when, o = a.createOscillator(), g = a.createGain();
+    o.type = type; o.frequency.setValueAtTime(freq, t);
+    if(slideTo) o.frequency.exponentialRampToValueAtTime(slideTo, t+dur);
+    g.gain.setValueAtTime(.0001, t); g.gain.exponentialRampToValueAtTime(vol, t+.012); g.gain.exponentialRampToValueAtTime(.0001, t+dur);
+    o.connect(g); g.connect(a.destination); o.start(t); o.stop(t+dur+.03);
+  }catch(e){}
+}
+const SFX = {
+  tick(){ tone(1500,.025,'square',.05) },
+  tap(){ tone(520,.04,'sine',.07) },
+  land(){ tone(660,.12,'triangle',.2); tone(990,.22,'triangle',.18,.1) },
+  hit(){ tone(880,.12,'sine',.22); tone(1320,.2,'sine',.18,.09) },
+  miss(){ tone(200,.28,'sawtooth',.1,0,95) },
+  beep(){ tone(1000,.08,'square',.07) },
+  buzz(){ tone(150,.55,'sawtooth',.16,0,110) },
+  fanfare(){ [523,659,784,1047].forEach((f,i)=>tone(f,.24,'triangle',.2,i*.12)); tone(1047,.6,'triangle',.16,.5) }
+};
+function vib(p){ if(muted) return; try{ navigator.vibrate && navigator.vibrate(p) }catch(e){} }
+
+/* ================= wake lock ================= */
+let wakeLock = null;
+async function keepAwake(){try{ if(navigator.wakeLock && !wakeLock){ wakeLock = await navigator.wakeLock.request('screen'); wakeLock.addEventListener('release',()=>{wakeLock=null}); } }catch(e){}}
+document.addEventListener('visibilitychange',()=>{ if(document.visibilityState==='visible' && view==='game') keepAwake(); });
+
+/* ================= motor del juego ================= */
+function buildPool(decks, custom){
+  let p = [];
+  DECKS.forEach(d=>{ if(decks.includes(d.id)) p = p.concat(d.cards); });
+  String(custom||'').split('\n').map(s=>s.trim().slice(0,90)).filter(Boolean).slice(0,200).forEach(c=>p.push(c));
+  return [...new Set(p)];
+}
+function draw(){ if(!H.deck.length) H.deck = shuffle(H.pool); return H.deck.pop(); }
+function startGame(mode, players, s, code, hostId){
+  const pool = buildPool(s.decks, draft.custom);
+  const acts = (H && H.acts) || {};
+  G = {v:2, gid:rid(), mode, code:code||null, hostId:hostId||null, settings:{...s},
+       teams:!!s.teams, defendOn:!!s.defend, players, totalRounds:players.length*s.turns,
+       round:1, victim:0, wheelRot:0, stats:null};
+  H = {pool, deck:shuffle(pool), log:[], acts};
+  newRound();
+}
+function newRound(){
+  Object.assign(G, {phase:'spin', mod:null, spin:null, cards:[], rankings:{}, turn:0, reveal:0, defend:null, result:null});
+}
+function validRank(r){ return Array.isArray(r) && r.length===5 && [1,2,3,4,5].every(n=>r.includes(n)); }
+function leaders(){ const mx = Math.max(...G.players.map(p=>p.score)); return G.players.filter(p=>p.score===mx).map(p=>p.id); }
+
+function computeRound(){
+  const vid = vic().id, truth = G.rankings[vid], m = G.mod, res = {};
+  let best = 0;
+  G.players.forEach(p=>{
+    if(p.id===vid) return;
+    const g = G.rankings[p.id] || [0,0,0,0,0], hits = [];
+    for(let k=0;k<5;k++) if(g[k]===truth[k]) hits.push(truth[k]);
+    const n = hits.length, ac = n===1 ? '1 acierto' : n+' aciertos';
+    let total = n, note = ac;
+    if(m==='sum'){ total = hits.reduce((a,b)=>a+b,0); note = n ? ac+' · '+hits.slice().sort().join(' + ') : ac; }
+    else if(m==='double'){ total = n*2; note = ac+' × 2'; }
+    else if(m==='triple'){ total = n*3; note = ac+' × 3'; }
+    else if(m==='four' && hits.includes(4)){ total = n+4; note = ac+' + 4 por el 4'; }
+    else if(m==='one' && hits.includes(1)){ total = n+1; note = ac+' + 1 por el 1'; }
+    else if(m==='all' && n===5){ total = n+5; note = ac+' + 5 por el pleno'; }
+    res[p.id] = {hits:n, total, note};
+    best = Math.max(best, total);
+  });
+  res[vid] = {victim:true, total:best, note:'Víctima: igual al mejor de la ronda'};
+  return res;
+}
+function scoreRound(){
+  const res = computeRound(), vid = vic().id;
+  G.result = res;
+  G.players.forEach(p=>{ p.score += res[p.id].total; });
+  const pts = {}; G.players.forEach(p=>pts[p.id]=res[p.id].total);
+  H.log.push({v:vid, mod:G.mod, cards:G.cards.slice(), r:JSON.parse(JSON.stringify(G.rankings)), pts});
+  G.phase = 'score';
+}
+function computeStats(){
+  const log = H.log, nm = id => (pById(id)||{}).name || '?', out = [];
+  const pair = {}, guess = {}, read = {};
+  log.forEach(e=>{
+    const t = e.r[e.v]; if(!t) return;
+    G.players.forEach(p=>{
+      const g = e.r[p.id]; if(p.id===e.v || !validRank(g)) return;
+      const h = g.filter((x,k)=>x===t[k]).length, key = p.id+'>'+e.v;
+      pair[key] = pair[key] || {g:p.id, v:e.v, h:0, n:0}; pair[key].h += h; pair[key].n += 5;
+      guess[p.id] = guess[p.id] || {h:0, n:0, plenos:0}; guess[p.id].h += h; guess[p.id].n += 5; if(h===5) guess[p.id].plenos++;
+      read[e.v] = read[e.v] || {h:0, n:0}; read[e.v].h += h; read[e.v].n += 5;
+    });
+  });
+  const pct = o => o.h/o.n;
+  const pairs = Object.values(pair);
+  if(pairs.length){
+    const best = pairs.reduce((a,b)=> pct(b)>pct(a) || (pct(b)===pct(a) && b.n>a.n) ? b : a);
+    out.push({t:'Se conocen de memoria', b:nm(best.g)+' → '+nm(best.v), d:`Le acertó ${best.h} de ${best.n} cartas.`});
+    const worst = pairs.reduce((a,b)=> pct(b)<pct(a) || (pct(b)===pct(a) && b.n>a.n) ? b : a);
+    if(worst!==best && pct(worst)<pct(best)) out.push({t:'Ni idea', b:nm(worst.g)+' → '+nm(worst.v), d:`Le acertó ${worst.h} de ${worst.n}. ¿Se conocen?`});
+  }
+  const gs = Object.entries(guess);
+  if(gs.length){
+    const [id,g] = gs.reduce((a,b)=> pct(b[1])>pct(a[1]) ? b : a);
+    out.push({t:'Mejor adivino', b:nm(id), d:`Acertó el ${Math.round(pct(g)*100)}% cuando no era víctima.`});
+  }
+  const rs = Object.entries(read);
+  if(rs.length>1){
+    const [id,r] = rs.reduce((a,b)=> pct(b[1])<pct(a[1]) ? b : a);
+    out.push({t:'Imposible de leer', b:nm(id), d:`Como víctima, los demás le acertaron solo el ${Math.round(pct(r)*100)}%.`});
+    const [id2,r2] = rs.reduce((a,b)=> pct(b[1])>pct(a[1]) ? b : a);
+    if(id2!==id) out.push({t:'Libro abierto', b:nm(id2), d:`Como víctima, los demás le acertaron el ${Math.round(pct(r2)*100)}%.`});
+  }
+  const pl = gs.filter(([,g])=>g.plenos>0).sort((a,b)=>b[1].plenos-a[1].plenos);
+  if(pl.length) out.push({t:'Plenos', b:pl.slice(0,3).map(([id,g])=>nm(id)+' ×'+g.plenos).join(' · '), d:'Acertaron las cinco cartas en una ronda.'});
+  let br = null;
+  log.forEach((e,i)=>Object.entries(e.pts).forEach(([id,p])=>{ if(id!==e.v && (!br || p>br.p)) br = {id, p, mod:e.mod, i}; }));
+  if(br && br.p>0) out.push({t:'Mejor ronda', b:nm(br.id)+' +'+br.p, d:`En la ronda ${br.i+1}, con ${mod(br.mod).name}.`});
+  let hot = null, calm = null;
+  log.forEach(e=>e.cards.forEach((c,k)=>{
+    const vals = Object.values(e.r).map(r=>r[k]).filter(x=>x>0); if(vals.length<3) return;
+    const m = vals.reduce((a,b)=>a+b,0)/vals.length, v = vals.reduce((a,b)=>a+(b-m)**2,0)/vals.length;
+    const it = {c:c.slice(0,90), v, m, min:Math.min(...vals), max:Math.max(...vals)};
+    if(!hot || v>hot.v) hot = it;
+    if(!calm || v<calm.v || (v===calm.v && m>calm.m)) calm = it;
+  }));
+  if(hot && hot.v>0) out.push({wide:1, t:'El que más dividió', b:hot.c, d:`Lo pusieron desde ${hot.min} (${WORD[hot.min].toLowerCase()}) hasta ${hot.max} (${WORD[hot.max].toLowerCase()}).`});
+  if(calm && calm!==hot) out.push({wide:1, t:'Todos de acuerdo', b:calm.c, d:`Promedio ${calm.m.toFixed(1).replace('.',',')}: ${WORD[Math.round(calm.m)].toLowerCase()} para casi todos.`});
+  return out;
+}
+
+/* Todas las jugadas pasan por acá. En modo online solo corre en el celular del anfitrión. */
+function apply(type, arg, actor){
+  if(!G) return false;
+  arg = arg || {};
+  const on = G.mode==='online';
+  const hostish = !on || actor===G.hostId;
+  const FLOW = {spin:1,toCards:1,swap:1,startRank:1,reveal:1,nextReveal:1,defend:1,nextRound:1,final:1};
+  if(on && FLOW[type] && !hostish && G.players[G.victim] && actor!==vic().id) return false;
+  switch(type){
+    case 'start':
+      if(!hostish || G.phase!=='lobby' || G.players.length<3) return false;
+      startGame('online', G.players.map(p=>({...p, score:0})), G.settings, G.code, G.hostId); return true;
+    case 'spin': {
+      if(G.phase!=='spin' || G.mod) return false;
+      const i = Math.floor(Math.random()*MODS.length), c = i*60 + 30 + (Math.random()-.5)*44, cur = G.wheelRot;
+      G.spin = {id:rid(), rot: cur + 360*5 + (((-c - cur) % 360) + 360) % 360};
+      G.mod = MODS[i].id; return true;
+    }
+    case 'toCards': {
+      if(G.phase!=='spin' || !G.mod) return false;
+      G.cards = []; let t = 0;
+      while(G.cards.length<5 && t++<60){ const c = draw(); if(!G.cards.includes(c)) G.cards.push(c); }
+      G.phase = 'cards'; return true;
+    }
+    case 'swap': {
+      const k = arg.k|0; if(G.phase!=='cards' || k<0 || k>4) return false;
+      let c = draw(), t = 0; while(G.cards.includes(c) && t++<8) c = draw();
+      G.cards[k] = c; return true;
+    }
+    case 'startRank':
+      if(G.phase!=='cards') return false;
+      G.turn = 0; G.rankings = {}; G.phase = on ? 'rank' : 'handoff'; return true;
+    case 'submitRank': {
+      const id = arg.id, r = arg.r;
+      if(!pById(id) || !validRank(r)) return false;
+      if(on){
+        if(actor!==id || G.phase!=='rank' || G.rankings[id]) return false;
+        G.rankings[id] = r.slice();
+        if(G.players.every(p=>G.rankings[p.id])) G.phase = 'ready';
+        return true;
+      }
+      if(G.phase!=='rank') return false;
+      G.rankings[id] = r.slice(); G.turn++;
+      G.phase = G.turn < G.players.length ? 'handoff' : 'ready'; return true;
+    }
+    case 'skipMissing': {
+      const vid = vic().id;
+      if(!on || !hostish || G.phase!=='rank' || !G.rankings[vid]) return false;
+      G.players.forEach(p=>{ if(!G.rankings[p.id]) G.rankings[p.id] = [0,0,0,0,0]; });
+      G.phase = 'ready'; return true;
+    }
+    case 'reveal':
+      if(G.phase!=='ready') return false;
+      G.phase = 'reveal'; G.reveal = 0; G.defend = null; return true;
+    case 'defend':
+      if(G.phase!=='reveal' || !G.defendOn) return false;
+      G.defend = {id:rid(), k:G.reveal}; return true;
+    case 'nextReveal':
+      if(G.phase!=='reveal' || (arg.at!==undefined && arg.at!==G.reveal)) return false;
+      if(G.reveal<4){ G.reveal++; G.defend = null; return true; }
+      scoreRound(); return true;
+    case 'nextRound': {
+      if(G.phase!=='score' || (arg.at!==undefined && arg.at!==G.round)) return false;
+      if(G.round>=G.totalRounds && leaders().length===1) return false;
+      if(G.spin) G.wheelRot = G.spin.rot % 360;
+      G.round++; G.victim = (G.victim+1) % G.players.length; newRound(); return true;
+    }
+    case 'final':
+      if(G.phase!=='score' || G.round<G.totalRounds || leaders().length!==1) return false;
+      G.stats = computeStats(); G.phase = 'final'; return true;
+    case 'again':
+      if(!hostish || G.phase!=='final') return false;
+      startGame(G.mode, G.players.map(p=>({...p, score:0})), G.settings, G.code, G.hostId); return true;
+  }
+  return false;
+}
+function dispatch(type, arg){
+  if(!G) return;
+  if(iAmHost()){
+    if(apply(type, arg, online() ? me.pid : null)) commit(); else render();
+  } else {
+    sendAct(type, arg); render();
+  }
+}
+function commit(){
+  save();
+  if(online() && net.isHost) publishHost();
+  render();
+}
+
+/* ================= red (cada uno con su celular) ================= */
+function bytes(s){ try{ return new TextEncoder().encode(s).length }catch(e){ return s.length*2 } }
+function pubState(){
+  const g = JSON.parse(JSON.stringify(G));
+  if(g.phase==='rank'){ g.done = Object.keys(g.rankings); g.rankings = {}; }
+  if(bytes(JSON.stringify(g)) > 3600 && g.result) Object.values(g.result).forEach(r=>{ r.note = ''; });
+  while(bytes(JSON.stringify(g)) > 3600 && g.stats && g.stats.length) g.stats.pop();
+  return g;
+}
+function publishHost(){
+  if(!net.nr) return;
+  net.nr.presence({code:net.code, pid:me.pid, name:me.name, host:true, g:pubState()}).catch(()=>{});
+}
+function sendAct(type, arg){
+  if(!net.nr) return;
+  net.actSeq++;
+  net.nr.presence({act:{id:me.pid.slice(-5)+Date.now().toString(36)+net.actSeq, type, arg:arg||{}}}).catch(()=>{});
+}
+/* Dentro de Claude se usa la sala de Claude. En cualquier otra web, los celulares se conectan
+   directo entre sí (WebRTC con PeerJS): el anfitrión es el centro y los demás se conectan a él. */
+const IN_CLAUDE = !!(window.claude && typeof window.claude.use === 'function');
+const sleep = ms => new Promise(r=>setTimeout(r,ms));
+let peerLibP = null;
+function loadPeerLib(){
+  if(window.Peer) return Promise.resolve();
+  if(!peerLibP) peerLibP = new Promise((res, rej)=>{
+    const s = document.createElement('script');
+    s.src = 'https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js';
+    s.onload = ()=> window.Peer ? res() : rej({type:'lib'});
+    s.onerror = ()=>{ peerLibP = null; rej({type:'lib'}); };
+    document.head.appendChild(s);
+  });
+  return peerLibP;
+}
+async function p2pRoom(code, asHost, reopen){
+  await loadPeerLib();
+  const hostId = 'peor-imposible-' + code.toLowerCase();
+  const others = new Map(), conns = new Map(), subs = [];
+  let mine = {}, snap = Object.freeze([]), closed = false, peer = null, conn = null, retry = null, connect = ()=>{};
+  const fire = () => {
+    snap = Object.freeze([{peer:'yo', isMe:true, sameTab:true, kind:'viewer', guest:false, by:null, presence:mine},
+      ...[...others].map(([id, presence])=>({peer:id, isMe:false, sameTab:false, kind:'viewer', guest:false, by:null, presence}))]);
+    subs.forEach(f=>{ try{ f({peers:snap, joined:[], left:[], updated:[]}); }catch(e){} });
+  };
+  const sendTo = c => { try{ if(c && c.open) c.send({t:'p', p:mine}); }catch(e){} };
+  const newPeer = () => new Promise((res, rej)=>{
+    const p = asHost ? new window.Peer(hostId, {debug:0}) : new window.Peer({debug:0});
+    let done = false;
+    const to = setTimeout(()=>{ if(!done){ done = true; try{ p.destroy(); }catch(e){} rej({type:'timeout'}); } }, 15000);
+    p.on('open', ()=>{ if(!done){ done = true; clearTimeout(to); res(p); } });
+    p.on('error', e=>{ if(!done){ done = true; clearTimeout(to); try{ p.destroy(); }catch(x){} rej(e || {type:'error'}); } });
+  });
+  for(let i=0;;i++){
+    try{ peer = await newPeer(); break; }
+    catch(e){
+      // Si el anfitrión recarga la página, su código tarda unos segundos en liberarse.
+      if(asHost && reopen && e && e.type==='unavailable-id' && i<6){ await sleep(4000); continue; }
+      throw e;
+    }
+  }
+  peer.on('disconnected', ()=>{ if(!closed) setTimeout(()=>{ try{ if(!closed && peer.disconnected) peer.reconnect(); }catch(e){} }, 1500); });
+  if(asHost){
+    peer.on('connection', c=>{
+      c.on('open', ()=>{ conns.set(c.peer, c); sendTo(c); });
+      c.on('data', d=>{ if(d && d.t==='p' && d.p && typeof d.p==='object'){ others.set(c.peer, d.p); fire(); } });
+      const drop = ()=>{ if(conns.get(c.peer)===c) conns.delete(c.peer); if(others.delete(c.peer)) fire(); };
+      c.on('close', drop); c.on('error', drop);
+    });
+    peer.on('error', ()=>{});
+  } else {
+    const lost = ()=>{ if(closed) return; if(others.delete('anfitrion')) fire(); clearTimeout(retry); retry = setTimeout(connect, 2500); };
+    connect = ()=>{
+      if(closed) return;
+      const old = conn;
+      const c = peer.connect(hostId, {reliable:true}); conn = c;
+      try{ old && old.close(); }catch(e){}
+      c.on('open', ()=>sendTo(c));
+      c.on('data', d=>{ if(c===conn && d && d.t==='p' && d.p && typeof d.p==='object'){ others.set('anfitrion', d.p); fire(); } });
+      c.on('close', ()=>{ if(c===conn) lost(); });
+      c.on('error', ()=>{ if(c===conn) lost(); });
+    };
+    peer.on('error', e=>{ if(e && e.type==='peer-unavailable') lost(); });
+    connect();
+  }
+  const onVisible = ()=>{
+    if(document.visibilityState!=='visible' || closed) return;
+    try{ if(peer.disconnected) peer.reconnect(); }catch(e){}
+    if(!asHost && !(conn && conn.open)){ clearTimeout(retry); connect(); }
+  };
+  document.addEventListener('visibilitychange', onVisible);
+  fire();
+  return {
+    presence: async patch => {
+      const m = {...mine};
+      for(const k in patch){ if(patch[k]===null) delete m[k]; else m[k] = patch[k]; }
+      mine = JSON.parse(JSON.stringify(m));
+      if(asHost) conns.forEach(sendTo); else sendTo(conn);
+      fire();
+    },
+    peers: () => snap,
+    onPeers: f => { subs.push(f); setTimeout(()=>f({peers:snap, joined:[], left:[], updated:[]}), 0); return ()=>{ const i = subs.indexOf(f); if(i>=0) subs.splice(i,1); }; },
+    leave: async () => {
+      closed = true; clearTimeout(retry); document.removeEventListener('visibilitychange', onVisible);
+      try{ conns.forEach(c=>c.close()); conn && conn.close(); }catch(e){}
+      try{ peer.destroy(); }catch(e){}
+    },
+    connected: () => !closed && !!peer && !peer.disconnected,
+  };
+}
+async function getRoom(){
+  if(net.room !== undefined) return net.room;
+  if(!IN_CLAUDE){ net.room = {p2p:true}; return net.room; }
+  try{ net.room = await window.claude.use('room'); }catch(e){ net.room = null; }
+  return net.room;
+}
+async function openRoom(code, asHost, reopen){
+  const room = await getRoom(); if(!room) throw {type:'no-room'};
+  if(room.p2p) return p2pRoom(code, asHost, reopen);
+  try{ return await room.join('pi-' + code.toLowerCase()); }catch(e){ return room; }
+}
+function netErrorText(e){
+  if(e && e.type==='lib') return 'No se pudo cargar la conexión. Revisá que tengas internet.';
+  if(e && e.type==='unavailable-id') return 'Esa sala ya está abierta en otro celular.';
+  if(e && e.type==='browser-incompatible') return 'Este navegador no permite conectar celulares. Probá con Chrome o Safari actualizados.';
+  return 'No se pudo conectar. Revisá internet y probá de nuevo.';
+}
+function newCode(){ const L='ABCDEFGHJKLMNPQRSTUVWXYZ'; let c=''; for(let i=0;i<4;i++) c+=L[Math.floor(Math.random()*L.length)]; return c; }
+function inviteURL(){ return location.origin + location.pathname + '#' + (G && G.code || net.code || ''); }
+function toast(msg){
+  const el = document.createElement('div'); el.className = 'toast'; el.setAttribute('role','status'); el.textContent = msg;
+  document.body.appendChild(el); setTimeout(()=>el.remove(), 2400);
+}
+function copyText(t){
+  try{ navigator.clipboard.writeText(t).then(()=>toast('Enlace copiado'), ()=>toast(t)); }catch(e){ toast(t); }
+}
+function peerList(){
+  try{ return net.nr.peers().filter(p=>p.presence && p.presence.code===net.code && typeof p.presence.pid==='string'); }catch(e){ return []; }
+}
+async function hostRoom(code, fresh){
+  net.err = ''; net.busy = true; render();
+  for(let i=0;;i++){
+    try{ net.nr = await openRoom(code, true, !fresh); break; }
+    catch(e){
+      if(fresh && e && e.type==='unavailable-id' && i<3){ code = newCode(); continue; }
+      net.busy = false; net.err = netErrorText(e); render(); return;
+    }
+  }
+  net.busy = false;
+  net.code = code; net.isHost = true; savedJoin = null;
+  if(fresh){
+    G = {v:2, mode:'online', phase:'lobby', code, hostId:me.pid,
+         settings:{decks:draft.decks.slice(), turns:defaultTurns(3), touched:false, teams:draft.teams, defend:draft.defend},
+         players:[{id:me.pid, name:me.name, color:PCOL[0], score:0}]};
+    H = {pool:[], deck:[], log:[], acts:{}};
+  }
+  net.unsub && net.unsub();
+  net.unsub = net.nr.onPeers(hostSync, ()=>{});
+  view = 'game'; keepAwake(); commit();
+}
+function hostSync(){
+  if(!G || !net.isHost) return;
+  let changed = false;
+  const peers = peerList().filter(p=>!p.presence.host && p.presence.pid!==me.pid);
+  if(G.phase==='lobby'){
+    const list = [G.players[0]];
+    peers.forEach(p=>{
+      const pid = p.presence.pid;
+      if(list.length<MAXP && !list.some(x=>x.id===pid)) list.push({id:pid, name:cleanName(p.presence.name)||'Sin nombre', color:PCOL[list.length], score:0});
+    });
+    if(JSON.stringify(list)!==JSON.stringify(G.players)){
+      G.players = list;
+      if(!G.settings.touched) G.settings.turns = defaultTurns(Math.max(3,list.length));
+      changed = true;
+    }
+  }
+  peers.forEach(p=>{
+    const pr = p.presence, pl = pById(pr.pid); if(!pl) return;
+    if(pr.rank && pr.rank.gid===G.gid && pr.rank.round===G.round && G.phase==='rank' && !G.rankings[pl.id]){
+      if(apply('submitRank', {id:pl.id, r:pr.rank.r}, pl.id)) changed = true;
+    }
+    if(pr.act && typeof pr.act.id==='string' && H.acts[pl.id]!==pr.act.id){
+      H.acts[pl.id] = pr.act.id;
+      if(apply(String(pr.act.type), pr.act.arg, pl.id)) changed = true;
+      save();
+    }
+  });
+  if(changed) commit(); else render();
+}
+async function joinRoom(code){
+  net.err = '';
+  code = String(code||'').toUpperCase().replace(/[^A-Z]/g,'').slice(0,4);
+  if(code.length!==4){ net.err = 'El código tiene 4 letras.'; render(); return; }
+  if(!me.name){ net.err = 'Poné tu nombre primero.'; render(); return; }
+  net.busy = true; render();
+  try{ net.nr = await openRoom(code, false); }
+  catch(e){ net.busy = false; net.err = netErrorText(e); render(); return; }
+  net.busy = false; net.prefill = '';
+  try{ if(!IN_CLAUDE && location.hash) history.replaceState(null, '', location.pathname); }catch(e){}
+  net.code = code; net.isHost = false; net.hostSeen = false; net.hostLost = false; net.lastG = null;
+  G = null; H = null; savedJoin = {code};
+  net.nr.presence({code, pid:me.pid, name:me.name, host:null, g:null}).catch(()=>{});
+  net.unsub && net.unsub();
+  net.unsub = net.nr.onPeers(clientSync, ()=>{});
+  view = 'game'; keepAwake(); save(); render();
+  clearTimeout(net.timer);
+  net.timer = setTimeout(()=>{ if(!net.hostSeen && !net.isHost && view==='game'){ net.err = `No encontramos la sala ${code}. Revisá el código o pedile al anfitrión que la abra.`; render(); } }, 9000);
+}
+function clientSync(){
+  if(net.isHost) return;
+  const host = peerList().find(p=>p.presence.host===true && p.presence.g);
+  if(host){
+    net.hostSeen = true; net.hostLost = false; net.err = '';
+    if(host.presence.g !== net.lastG){ net.lastG = host.presence.g; G = JSON.parse(JSON.stringify(host.presence.g)); }
+  } else if(net.hostSeen){ net.hostLost = true; }
+  render();
+}
+async function leaveRoom(){
+  clearTimeout(net.timer);
+  try{ net.unsub && net.unsub(); }catch(e){}
+  try{ if(net.nr && net.nr.leave) await net.nr.leave(); else if(net.nr) await net.nr.presence({code:null, pid:null, name:null, host:null, g:null, act:null, rank:null}); }catch(e){}
+  net.nr = null; net.code = null; net.isHost = false; net.hostSeen = false; net.hostLost = false; net.unsub = null;
+}
+
+/* ================= piezas de interfaz ================= */
+function wheelSVG(){
+  const cx=160, cy=160, r=152;
+  const pt=(a,rad)=>[cx+rad*Math.sin(a*Math.PI/180), cy-rad*Math.cos(a*Math.PI/180)];
+  let s = `<svg viewBox="0 0 320 320" role="img" aria-label="Ruleta con seis casillas"><circle cx="160" cy="160" r="158" fill="#1B1B2F"/>`;
+  MODS.forEach((m,i)=>{
+    const a0=i*60, a1=a0+60, mid=a0+30, [x0,y0]=pt(a0,r), [x1,y1]=pt(a1,r);
+    s += `<path d="M${cx} ${cy} L${x0.toFixed(2)} ${y0.toFixed(2)} A${r} ${r} 0 0 1 ${x1.toFixed(2)} ${y1.toFixed(2)} Z" fill="${m.color}" stroke="#1B1B2F" stroke-width="4" stroke-linejoin="round"/>`;
+    s += `<g transform="rotate(${mid} ${cx} ${cy})"><text x="${cx}" y="${cy-92}" text-anchor="middle" dominant-baseline="middle" fill="#1B1B2F" style="font:400 30px var(--display)">${m.sym}</text>`;
+    s += `<text x="${cx}" y="${cy-126}" text-anchor="middle" dominant-baseline="middle" fill="#1B1B2F" style="font:900 12px var(--body);letter-spacing:.06em">${m.name.toUpperCase()}</text></g>`;
+  });
+  s += `<circle cx="160" cy="160" r="32" fill="#FFD23F" stroke="#1B1B2F" stroke-width="5"/><circle cx="160" cy="160" r="10" fill="#1B1B2F"/></svg>`;
+  return s;
+}
+const modBox = (m, pop) => `<div class="modbox${pop?' pop':''}" style="--mc:${m.color}"><span class="modsym">${m.sym}</span><div><strong>${m.name}</strong><p>${m.desc}</p></div></div>`;
+const modTag = m => `<span class="modtag" style="--mc:${m.color}"><i>${m.sym}</i>${m.name}</span>`;
+const tok = (v, cls='') => `<span class="tok h${v} ${cls}">${v}</span>`;
+const waitMsg = txt => `<p class="wait">${txt}</p>`;
+const waitVictim = what => waitMsg(`Esperando que ${esc(vic().name)} ${what}…`);
+function flowBtn(label, act, extra=''){
+  return canFlow() ? `<button class="btn" data-act="${act}" ${extra}>${label}</button>` : '';
+}
+function standings(){
+  const order = G.players.map((p,i)=>i).sort((a,b)=>G.players[b].score-G.players[a].score);
+  const mx = Math.max(1, ...G.players.map(p=>p.score));
+  let prev = null, pos = 0;
+  return `<ol class="standings">` + order.map((i,idx)=>{
+    const p = G.players[i]; if(p.score!==prev){pos=idx+1; prev=p.score;}
+    const you = online() && p.id===me.pid ? ' (vos)' : '';
+    return `<li style="--pc:${p.color}"><span class="pos">${pos}</span><div class="bar"><span>${esc(p.name)}${you}</span><i style="--w:${(p.score/mx*100).toFixed(1)}%"></i></div><span class="sc">${p.score}</span></li>`;
+  }).join('') + `</ol>`;
+}
+function topBar(){
+  let pill = '';
+  if(G && G.phase==='lobby') pill = `<span class="pill">Sala ${esc(G.code)}</span>`;
+  else if(G && G.round){ const tie = G.round > G.totalRounds; pill = `<span class="pill${tie?' hot':''}">${tie?'Desempate':'Ronda '+G.round+' / '+G.totalRounds}</span>`; }
+  const lost = online() && !net.isHost && net.hostLost ? `<div class="banner">Se perdió la conexión con quien armó la sala. Esperando que vuelva…</div>` : '';
+  return `<header class="top"><span class="brand">Peor <span>Imposible</span></span>${pill}
+    <button class="iconbtn" data-act="mute" aria-label="${muted?'Activar sonido':'Silenciar'}" aria-pressed="${muted}">${muted?ICON_MUTE:ICON_SOUND}</button>
+    <button class="iconbtn" data-act="menu" aria-haspopup="dialog">Menú</button></header>${lost}`;
+}
+const rulesList = () => `<ol class="rules">
+  <li>Cada ronda hay una víctima. Gira la ruleta para ver cómo se puntúa.</li>
+  <li>Salen cinco escenarios. Cada uno, en secreto, los ordena del 1 (zafa) al 5 (lo peor). La víctima pone lo que piensa de verdad; el resto intenta adivinarlo.</li>
+  <li>Se revelan las cartas una por una. Si está activado, la víctima tiene ${DEFEND_SECS} segundos para defender cada respuesta.</li>
+  <li>Cada coincidencia con la víctima vale 1 punto, más lo que diga la ruleta. ${VICTIM_NOTE}</li>
+  <li>La víctima pasa al siguiente de la lista. Gana quien sume más al final; si hay empate, se juega otra ronda.</li></ol>`;
+const scaleStrip = () => `<div class="scale">${[1,2,3,4,5].map(v=>`<div class="h${v}"><b>${v}</b><small>${WORD[v]}</small></div>`).join('')}</div>`;
+
+function settingsHTML(s, n, editable){
+  const dis = editable ? '' : 'disabled';
+  const count = buildPool(s.decks, editable ? draft.custom : '').length;
+  return `<div class="stack"><h2>Mazos</h2>
+    <div class="decks">${DECKS.map(d=>{ const on = s.decks.includes(d.id);
+      return `<button class="deck${on?' on':''}" data-act="deck" data-id="${d.id}" aria-pressed="${on}" ${dis}>${DECK_ICON[d.id]}<b>${d.name}</b><small>${d.cards.length} cartas · ${d.desc}</small></button>`; }).join('')}</div>
+    <p class="hint">${s.decks.length ? count+' escenarios en juego.' : '<span class="err">Elegí al menos un mazo.</span>'}</p></div>
+  <div class="stack"><h2>Duración</h2>
+    <div class="stepper"><button data-act="tdec" aria-label="Menos" ${dis}>−</button><b>${s.turns}</b><button data-act="tinc" aria-label="Más" ${dis}>+</button>
+    <p>${s.turns===1?'vez':'veces'} víctima cada uno<br><strong>${s.turns*n} rondas</strong></p></div></div>
+  <div class="stack">
+    <button class="switch" role="switch" aria-checked="${!!s.teams}" data-act="teams" ${dis}><span><b>Por equipos</b><small>${online()||view==='game'?'Cada celular es un equipo.':'Cada nombre es un equipo que ordena en conjunto.'}</small></span><i class="knob"></i></button>
+    <button class="switch" role="switch" aria-checked="${!!s.defend}" data-act="defend" ${dis}><span><b>Momento defendete</b><small>La víctima tiene ${DEFEND_SECS} s para explicar cada carta.</small></span><i class="knob"></i></button>
+  </div>`;
+}
+
+/* ================= vistas ================= */
+function vHome(){
+  const local = G && G.mode==='local' && G.phase!=='final';
+  const hosted = G && G.mode==='online' && net.isHost===false && G.code && G.hostId===me.pid && G.phase!=='final' && G.phase!=='closed';
+  const roomReady = net.room !== undefined;
+  return `<section class="hero">
+    <div class="logo"><span>Peor</span><span>Imposible</span></div>
+    <p class="lede">Cinco desgracias, una víctima. Ordenalas del 1 al 5 y adiviná cómo las ordena la víctima.</p>
+    ${scaleStrip()}
+    <div class="meta"><span>3 a 10 jugadores</span><span>${DECKS.length} mazos</span><span>${ALL_CARDS} escenarios</span></div>
+  </section>
+  <div class="stack">
+    ${local?`<button class="btn" data-act="resume">Seguir la partida · ronda ${G.round}</button>`:''}
+    ${hosted?`<button class="btn" data-act="reopen">Volver a abrir la sala ${esc(G.code)}</button>`:''}
+    ${savedJoin && !hosted?`<button class="btn" data-act="rejoin" ${net.room?'':'disabled'}>Volver a la sala ${esc(savedJoin.code)}</button>`:''}
+    <div class="modes">
+      <button class="mode${local||hosted||savedJoin?'':' main'}" data-act="setup">${ICON_PHONE}<b>Un solo celular</b><small>Se lo van pasando. Funciona siempre.</small></button>
+      <button class="mode" data-act="online">${ICON_PHONES}<b>Cada uno con su celular</b><small>${roomReady && !net.room ? 'No disponible en esta vista.' : 'Una sala con código. Nadie espera su turno.'}</small></button>
+    </div>
+  </div>
+  <details class="box"><summary>Cómo se juega</summary>${rulesList()}</details>`;
+}
+function vSetup(){
+  const n = draft.names.length, T = draft.teams;
+  return `<header class="top"><span class="brand">Peor <span>Imposible</span></span><button class="iconbtn" data-act="home">Volver</button></header>
+  <div class="stack"><h2>${T?'¿Qué equipos juegan?':'¿Quiénes juegan?'}</h2>
+  <p class="hint">El primero de la lista arranca como víctima. Por tradición, el que peor sobreviviría en una isla desierta.</p></div>
+  <ol class="plist">${draft.names.map((nm,i)=>`<li style="--pc:${PCOL[i]}"><span class="dot"></span>
+    <input id="pname-${i}" data-i="${i}" aria-label="Nombre ${i+1}" value="${esc(nm)}" placeholder="${T?'Equipo':'Jugador'} ${i+1}" maxlength="16" autocomplete="off" enterkeyhint="next">
+    <button class="rm" data-act="rm" data-i="${i}" aria-label="Quitar ${i+1}" ${n<=3?'disabled':''}>×</button></li>`).join('')}</ol>
+  ${n<MAXP?`<button class="btn ghost" data-act="add">+ Agregar ${T?'equipo':'jugador'}</button>`:''}
+  ${settingsHTML(draft, n, true)}
+  <details class="box"><summary>Agregar escenarios propios</summary>
+    <div class="stack"><textarea id="custom" placeholder="Uno por línea. Ej: Te quedás sin yerba un domingo a la tarde">${esc(draft.custom)}</textarea>
+    <p class="hint">Se mezclan con los mazos elegidos y quedan guardados para la próxima.</p></div></details>
+  <button class="btn" data-act="start" ${draft.decks.length?'':'disabled'}>Empezar</button>`;
+}
+function vOnline(){
+  const r = net.room;
+  const head = `<header class="top"><span class="brand">Peor <span>Imposible</span></span><button class="iconbtn" data-act="home">Volver</button></header>`;
+  if(r === undefined) return head + waitMsg('Conectando…');
+  if(!r) return head + `<div class="stack"><h2>Cada uno con su celular</h2>
+    <p>Este modo necesita que el juego esté abierto en claude.ai con una sesión iniciada.</p>
+    <p class="hint">Si lo estás viendo desde un enlace público o un archivo guardado, usá el modo de un solo celular.</p></div>
+    <button class="btn" data-act="setup">Jugar con un solo celular</button>`;
+  return head + `<div class="stack"><h2>Cada uno con su celular</h2>
+    <p class="hint">${IN_CLAUDE
+      ? 'Uno crea la sala y les pasa el código. Los demás abren este mismo juego (compartilo desde el botón Compartir de la página) y se unen.'
+      : 'Uno crea la sala y les manda el enlace o el código. Nadie necesita cuenta: solo internet.'}</p></div>
+    <div class="stack"><label class="eyebrow" for="myname">Tu nombre${draft.teams?' o el del equipo':''}</label>
+    <input class="field" id="myname" maxlength="16" autocomplete="nickname" placeholder="Cómo te ven los demás" value="${esc(me.name)}"></div>
+    ${net.prefill ? '' : `<button class="btn" data-act="create" ${net.busy?'disabled':''}>${net.busy?'Conectando…':'Crear sala'}</button>
+    <div class="or">o</div>`}
+    <div class="stack"><label class="eyebrow" for="joincode">Código de la sala</label>
+    <input class="field code" id="joincode" maxlength="4" autocomplete="off" autocapitalize="characters" placeholder="ABCD" value="${esc(net.prefill||'')}"></div>
+    <button class="btn ${net.prefill?'':'ghost'}" data-act="join" ${net.busy?'disabled':''}>${net.busy?'Conectando…':'Unirme'}</button>
+    ${net.prefill ? `<button class="link" data-act="noPrefill">Prefiero crear mi propia sala</button>` : ''}
+    ${net.err?`<p class="err">${esc(net.err)}</p>`:''}`;
+}
+function vConnecting(){
+  return topBarless() + (net.err
+    ? `<div class="stack"><p class="err">${esc(net.err)}</p><button class="btn ghost" data-act="leave">Volver</button></div>`
+    : `<section class="handoff"><p class="eyebrow">Sala ${esc(net.code||'')}</p><h1>Buscando la sala…</h1><p class="role">En unos segundos aparece la partida.</p></section><button class="link" data-act="leave">Cancelar</button>`);
+}
+const topBarless = () => `<header class="top"><span class="brand">Peor <span>Imposible</span></span></header>`;
+function vLobby(){
+  const n = G.players.length, host = pById(G.hostId) || G.players[0];
+  const extra = net.isHost ? peerList().filter(p=>!p.presence.host && !pById(p.presence.pid)).length : 0;
+  return `${topBar()}
+  <div class="codebox"><p class="eyebrow">Código de la sala</p><div class="code">${esc(G.code)}</div>
+    ${IN_CLAUDE
+      ? `<p class="hint">Los demás abren este juego, tocan "Cada uno con su celular", ponen su nombre y este código.</p>`
+      : `<p class="hint">Mandales el enlace: entran directo a esta sala, sin cuenta.</p>
+         <div class="invite"><button class="btn yellow" data-act="share">Invitar amigos</button><button class="link" data-act="copy">Copiar enlace</button></div>`}</div>
+  <div class="stack"><h2>${G.settings.teams?'Equipos':'Jugadores'} (${n}/${MAXP})</h2>
+  <ul class="plist">${G.players.map(p=>`<li style="--pc:${p.color}"><span class="dot"></span><span class="nm">${esc(p.name)}</span><span class="tag">${p.id===G.hostId?'armó la sala':''}${p.id===me.pid?' · vos':''}</span></li>`).join('')}</ul>
+  ${extra?`<p class="hint">${extra} más mirando: la sala está llena.</p>`:''}
+  ${n<3?`<p class="hint">Hacen falta al menos 3 para empezar.</p>`:''}</div>
+  ${settingsHTML(G.settings, n, net.isHost)}
+  ${net.isHost ? `<details class="box"><summary>Agregar escenarios propios</summary><div class="stack"><textarea id="custom" placeholder="Uno por línea">${esc(draft.custom)}</textarea></div></details>
+     <button class="btn" data-act="startOnline" ${n>=3 && G.settings.decks.length?'':'disabled'}>Empezar con ${n}</button>`
+   : waitMsg(`Esperando que ${esc(host.name)} empiece la partida…`)}`;
+}
+function vSpin(){
+  const v = vic(), m = G.mod && mod(G.mod), seen = G.spin && seenSpin===G.spin.id;
+  const rot = seen ? G.spin.rot : G.wheelRot;
+  let below;
+  if(!G.mod) below = canFlow() ? `<button class="btn" id="spinBtn" data-act="spin">Girar la ruleta</button><p class="hint" style="text-align:center">${esc(v.name)} gira y lee en voz alta dónde cayó.</p>` : waitVictim('gire la ruleta');
+  else if(!seen) below = '';
+  else below = `${modBox(m,true)}<p class="hint">${VICTIM_NOTE}</p>${canFlow()?flowBtn('Dar vuelta las cartas','toCards'):waitVictim('dé vuelta las cartas')}`;
+  return `${topBar()}
+  <section class="stack center">
+    <p class="eyebrow">La víctima de esta ronda</p>
+    <h1 class="vname" style="--pc:${v.color}">${esc(v.name)}${online()&&v.id===me.pid?' (vos)':''}</h1>
+  </section>
+  <div class="wheel"><svg class="pointer" viewBox="0 0 44 52" aria-hidden="true"><path d="M22 49 L5 12 Q22 -2 39 12 Z" fill="#FFD23F" stroke="#1B1B2F" stroke-width="4" stroke-linejoin="round"/><circle cx="22" cy="16" r="5" fill="#1B1B2F"/></svg><div id="wheelRot" class="wheel-rot" style="transform:rotate(${rot}deg)">${wheelSVG()}</div></div>
+  ${below}`;
+}
+function vCards(){
+  const v = vic(), cf = canFlow();
+  return `${topBar()}
+  <div class="stack"><p class="eyebrow">Víctima: ${esc(v.name)} · ${modTag(mod(G.mod))}</p>
+  <h2>Los cinco escenarios</h2>
+  <p class="hint">${esc(v.name)} los lee en voz alta.${cf?' Si alguno no pega, cambialo antes de ordenar.':''}</p></div>
+  <ol class="cards">${G.cards.map((c,k)=>`<li><div class="card"><span class="letter">${LET[k]}</span><p>${esc(c)}</p>
+    ${cf?`<button class="swap" data-act="swap" data-k="${k}" aria-label="Cambiar escenario ${LET[k]}">Cambiar</button>`:'<span></span>'}</div></li>`).join('')}</ol>
+  ${cf?flowBtn(online()?'Ordenar (cada uno en su celu)':'Ordenar en secreto','startRank'):waitVictim('termine de leer')}`;
+}
+function roleText(isV){
+  const v = vic(), T = G.teams;
+  if(isV) return T ? 'Son la víctima. Pónganse de acuerdo y ordenen según lo que piensan ustedes.' : 'Sos la víctima. Ordená las cartas según lo que pensás vos.';
+  return T ? `Adivinen cómo ordenó las cartas ${esc(v.name)}.` : `Adiviná cómo ordenó las cartas ${esc(v.name)}.`;
+}
+function vHandoff(){
+  const p = G.players[(G.victim + G.turn) % G.players.length], isV = p.id===vic().id;
+  return `${topBar()}
+  <section class="handoff" style="--pc:${p.color}">
+    <div class="avatar" aria-hidden="true">${initial(p.name)}</div>
+    <p class="eyebrow">${G.teams?'Le toca al equipo':'Pasale el celu a'}</p>
+    <h1>${esc(p.name)}</h1>
+    <p class="role">${roleText(isV)}</p>
+    <button class="btn" data-act="showRank">${G.teams?'Somos':'Soy'} ${esc(p.name)}, mostrar</button>
+    <div class="turns" aria-label="Turno ${G.turn+1} de ${G.players.length}">${G.players.map((_,t)=>`<i class="${t<G.turn?'done':t===G.turn?'now':''}"></i>`).join('')}</div>
+  </section>`;
+}
+function rankBoard(p, isV, confirmLabel, extra){
+  const key = G.gid+':'+G.round+':'+p.id;
+  if(myRankKey!==key){ myRankKey = key; myRank = [0,0,0,0,0]; }
+  const d = myRank, done = d.every(x=>x>0), v = vic();
+  return `${topBar()}
+  <div class="stack"><p class="eyebrow"><i class="dot" style="--pc:${p.color};display:inline-block;vertical-align:-4px;margin-right:6px"></i>${isV?'Opinión real de la víctima':'Apuesta sobre '+esc(v.name)}</p>
+  <h2>${esc(p.name)}, ${G.teams?'ordenen':'ordená'} del 1 al 5</h2>
+  <p class="hint">${isV?'1 es lo que menos molestaría, 5 lo peor que puede pasar.':'¿Qué pondría '+esc(v.name)+' en 1 (zafa) y qué en 5 (lo peor)?'} Cada número va una sola vez.</p></div>
+  <ol class="cards">${G.cards.map((c,k)=>`<li><div class="card rank"><span class="letter">${LET[k]}</span><p>${esc(c)}</p>
+    <div class="chips" role="group" aria-label="Puntaje para ${LET[k]}">${[1,2,3,4,5].map(n=>{
+      const on = d[k]===n, used = !on && d.includes(n);
+      return `<button class="chip h${n}${on?' on':''}${used?' used':''}${on && justPicked===k+':'+n?' just':''}" data-act="pick" data-k="${k}" data-v="${n}" aria-pressed="${on}"><b>${n}</b><small>${WORD[n]}</small></button>`;
+    }).join('')}</div></div></li>`).join('')}</ol>
+  <button class="btn" data-act="confirm" ${done?'':'disabled'}>${done?confirmLabel:'Faltan '+d.filter(x=>!x).length+' cartas'}</button>${extra||''}`;
+}
+function vRank(){
+  if(!online()){
+    const p = G.players[(G.victim + G.turn) % G.players.length];
+    return rankBoard(p, p.id===vic().id, 'Listo, tapar', `<button class="link" data-act="notme">No ${G.teams?'somos':'soy'} ${esc(p.name)}</button>`);
+  }
+  const p = pById(me.pid), done = G.done || Object.keys(G.rankings);
+  const sent = done.includes(me.pid) || net.sentRank===G.gid+':'+G.round;
+  if(p && !sent) return rankBoard(p, p.id===vic().id, 'Mandar mi orden');
+  return `${topBar()}
+  <section class="handoff" style="--pc:${p?p.color:'var(--paper)'}">
+    <div class="avatar" aria-hidden="true">${p?'✓':'…'}</div>
+    <h1>${p?'Listo':'Están ordenando'}</h1>
+    <p class="role">${p?'Tu orden ya está. Esperando al resto:':'Mirás la partida desde afuera. Faltan:'}</p>
+    <div class="pending">${G.players.map(x=>`<span class="${done.includes(x.id)?'done':''}"><i class="dot" style="--pc:${x.color}"></i>${esc(x.name)}</span>`).join('')}</div>
+  </section>
+  ${net.isHost && done.includes(vic().id) && done.length<G.players.length
+    ? `<button class="btn ghost" data-act="skipMissing">Seguir sin los que faltan</button><p class="hint" style="text-align:center">Úsalo si alguien se fue. Esa ronda suma 0.</p>` : ''}`;
+}
+function vReady(){
+  const v = vic();
+  return `${topBar()}
+  <section class="handoff" style="--pc:${v.color}">
+    <div class="avatar" aria-hidden="true">✓</div>
+    <h1>Todos ordenaron</h1>
+    <p class="role">${online()?'Se revela carta por carta, empezando por la A.':'Dejen el celu en el medio. Se revela carta por carta, empezando por la A.'}</p>
+    ${canFlow()?flowBtn('Revelar','reveal'):waitVictim('revele')}
+  </section>`;
+}
+function defendBlock(t){
+  if(!G.defendOn) return '';
+  const v = vic(), active = G.defend && G.defend.k===G.reveal && defendT.id===G.defend.id;
+  if(active){
+    const left = Math.max(0, Math.ceil((defendT.end - Date.now())/1000));
+    const over = left<=0;
+    return `<div class="defend${over?' over':''}" id="defendBox"><div class="ring" id="defRing" style="--p:${left/DEFEND_SECS}"><b id="defLeft">${left}</b></div>
+      <p>${over?'¡Tiempo!':`${esc(v.name)}, ${G.teams?'defiendan por qué la pusieron':'defendé por qué la pusiste'} en ${t}.`}</p></div>`;
+  }
+  return canFlow() ? `<button class="btn ghost" data-act="defend">Defendete · ${DEFEND_SECS} s</button>` : '';
+}
+function vReveal(){
+  const k = G.reveal, v = vic(), t = (G.rankings[v.id]||[])[k];
+  const others = G.players.filter(p=>p.id!==v.id);
+  return `${topBar()}
+  <p class="eyebrow">Carta ${LET[k]} · ${k+1} de 5</p>
+  <div class="card big"><span class="letter">${LET[k]}</span><p>${esc(G.cards[k])}</p></div>
+  <div class="truth">${tok(t,'lg')}<p>${esc(v.name)} la puso en<strong>${t} · ${WORD[t]}</strong></p></div>
+  ${defendBlock(t)}
+  <ul class="guesses">${others.map((p,n)=>{ const g=(G.rankings[p.id]||[])[k], ok=g===t;
+    return `<li style="--i:${n}"><span class="dot" style="--pc:${p.color}"></span><span class="nm">${esc(p.name)}${online()&&p.id===me.pid?' (vos)':''}</span>${g?tok(g):''}<span class="mark ${ok?'ok':'bad'}" aria-label="${ok?'Acertó':'No acertó'}">${ok?'✓':'✗'}</span></li>`;}).join('')}</ul>
+  <div class="dots" aria-hidden="true">${[0,1,2,3,4].map(x=>`<i class="${x<=k?'done':''}"></i>`).join('')}</div>
+  ${canFlow()?`<button class="btn" data-act="nextReveal">${k<4?'Siguiente carta':'Ver puntos'}</button>`:waitVictim(k<4?'pase a la siguiente carta':'muestre los puntos')}`;
+}
+function vScore(){
+  const r = G.result, m = mod(G.mod), n = G.players.length, vid = vic().id;
+  const order = G.players.filter(p=>p.id!==vid).sort((a,b)=>r[b.id].total-r[a.id].total);
+  order.push(vic());
+  const over = G.round >= G.totalRounds, L = leaders();
+  const next = G.players[(G.victim+1)%n];
+  let btn;
+  if(over && L.length===1) btn = canFlow() ? `<button class="btn" data-act="final">Ver quién ganó</button>` : waitVictim('muestre el resultado');
+  else {
+    const tieTxt = over ? `<p class="hint" style="text-align:center">Empate arriba entre ${L.map(id=>esc(pById(id).name)).join(' y ')}. Se juega otra ronda.</p>` : '';
+    btn = tieTxt + (canFlow() ? `<button class="btn" data-act="nextRound">${over?'Desempate':'Siguiente ronda'} · víctima: ${esc(next.name)}</button>` : waitVictim('pase a la siguiente ronda'));
+  }
+  return `${topBar()}
+  <div class="stack"><p class="eyebrow">Puntos de la ronda · ${modTag(m)}</p><h2>Así quedó</h2></div>
+  <ul class="rows">${order.map(p=>{ const x = r[p.id];
+    return `<li class="${x.victim?'vic':x.hits===5?'full':''}" style="--pc:${p.color}"><span class="dot"></span>
+    <div class="who"><b>${esc(p.name)}${online()&&p.id===me.pid?' (vos)':''}</b><small>${esc(x.note)}${x.hits===5?' · ¡pleno!':''}</small></div><span class="pts">+${x.total}</span></li>`;}).join('')}</ul>
+  <div class="panel"><p class="eyebrow">Tabla general</p>${standings()}</div>
+  ${btn}`;
+}
+function vFinal(){
+  const L = leaders(), w = pById(L[0]);
+  const stats = G.stats || [];
+  return `<section class="winner" style="--pc:${w.color}">
+    <p class="eyebrow">Fin de la partida</p>
+    ${ICON_CROWN}
+    <div class="avatar" aria-hidden="true">${initial(w.name)}</div>
+    <h1>${esc(w.name)} ${G.teams?'gana':'gana'}</h1>
+    <p class="hint">con ${w.score} puntos en ${G.round} rondas.</p>
+  </section>
+  ${stats.length?`<div class="stack"><h2>Lo que dejó la partida</h2>
+  <div class="stats">${stats.map((s,i)=>`<div class="stat${s.wide?' wide':''}" style="--i:${i}"><p class="eyebrow">${esc(s.t)}</p><b>${esc(s.b)}</b><p>${esc(s.d)}</p></div>`).join('')}</div></div>`:''}
+  <div class="panel"><p class="eyebrow">Tabla final</p>${standings()}</div>
+  <div class="stack">${iAmHost()?`<button class="btn" data-act="again">Revancha con los mismos</button>`:waitMsg('Si arman revancha, aparece acá.')}
+  <button class="btn ghost" data-act="exit">${online()?'Salir de la sala':'Nueva partida'}</button></div>`;
+}
+function vClosed(){
+  return `${topBarless()}<section class="handoff"><h1>La sala se cerró</h1><p class="role">Quien la armó terminó la partida.</p></section>
+  <button class="btn" data-act="exit">Volver al inicio</button>`;
+}
+function vSheet(){
+  const started = G && G.players && G.round;
+  return `<div class="sheet-in" role="dialog" aria-modal="true" aria-label="Menú">
+    <div class="sheet-head"><h2>Menú</h2><button class="iconbtn" data-act="closeMenu">Cerrar</button></div>
+    ${online()?`<p class="hint">Sala <strong>${esc(net.code||G.code)}</strong>${net.isHost?' · la armaste vos':''}</p>`:''}
+    ${started?`<div class="panel"><p class="eyebrow">Tabla general</p>${standings()}</div>`:''}
+    <button class="switch" role="switch" aria-checked="${!muted}" data-act="mute"><span><b>Sonido y vibración</b><small>Ruleta, aciertos y cuenta regresiva.</small></span><i class="knob"></i></button>
+    <div class="stack"><p class="eyebrow">La ruleta</p>
+      <ul class="modlist">${MODS.map(m=>`<li><span class="modsym" style="--mc:${m.color}">${m.sym}</span><p><b>${m.name}.</b> ${m.desc}</p></li>`).join('')}</ul>
+      <p class="hint">${VICTIM_NOTE}</p></div>
+    <details class="box"><summary>Reglas</summary>${rulesList()}</details>
+    <div class="danger">${confirmEnd
+      ? `<p>${online()&&!net.isHost?'¿Salir de la sala?':'¿Terminar la partida? Se pierden los puntos.'}</p><div class="row2"><button class="btn ghost" data-act="endNo">No</button><button class="btn" data-act="endYes">Sí</button></div>`
+      : `<button class="link" data-act="endAsk">${online()&&!net.isHost?'Salir de la sala':'Terminar partida'}</button>`}</div>
+  </div>`;
+}
+
+/* ================= render ================= */
+function render(){
+  if(animating){ renderPending = true; return; }
+  let html;
+  if(view==='home') html = vHome();
+  else if(view==='setup') html = vSetup();
+  else if(view==='online') html = vOnline();
+  else if(!G) html = vConnecting();
+  else if(G.phase==='closed') html = vClosed();
+  else html = ({lobby:vLobby, spin:vSpin, cards:vCards, handoff:vHandoff, rank:vRank, ready:vReady, reveal:vReveal, score:vScore, final:vFinal})[G.phase]();
+  const key = view + (G ? ':'+G.phase+':'+G.round+':'+G.turn+':'+G.reveal : '');
+  const newScreen = key!==lastKey;
+  if(html!==lastHTML){
+    const focusId = document.activeElement && document.activeElement.id;
+    const caret = focusId && document.activeElement.selectionStart;
+    if(newScreen){
+      $app.classList.remove('enter'); void $app.offsetWidth; $app.classList.add('enter');
+      clearTimeout(enterTimer); enterTimer = setTimeout(()=>$app.classList.remove('enter'), 700);
+    }
+    $app.innerHTML = html; lastHTML = html;
+    if(focusId && /^(myname|joincode|custom|pname-\d+)$/.test(focusId)){
+      const el = document.getElementById(focusId);
+      if(el){ el.focus(); try{ el.setSelectionRange(caret, caret); }catch(e){} }
+    }
+  }
+  if(newScreen){ window.scrollTo(0,0); lastKey = key; }
+  if(sheetOpen && view==='game' && G){ $sheet.innerHTML = vSheet(); $sheet.hidden = false; } else { $sheet.hidden = true; $sheet.innerHTML = ''; }
+  afterRender();
+}
+function afterRender(){
+  if(view!=='game' || !G) return;
+  // ruleta
+  if(G.phase==='spin' && G.spin && seenSpin!==G.spin.id) animateSpin();
+  // defendete
+  if(G.phase==='reveal' && G.defend && G.defend.id!==defendT.id){
+    defendT = {id:G.defend.id, end:Date.now()+DEFEND_SECS*1000, k:G.defend.k, beeped:DEFEND_SECS+1, done:false};
+    SFX.beep(); vib(40); render(); return;
+  }
+  // efectos por pantalla nueva
+  const fx = G.phase+':'+G.gid+':'+G.round+':'+G.reveal;
+  if(fx===lastFx) return;
+  lastFx = fx;
+  if(G.phase==='reveal'){
+    const vid = vic().id, t = (G.rankings[vid]||[])[G.reveal];
+    let good;
+    if(online() && me.pid!==vid && G.rankings[me.pid]) good = G.rankings[me.pid][G.reveal]===t;
+    else good = G.players.some(p=>p.id!==vid && G.rankings[p.id] && G.rankings[p.id][G.reveal]===t);
+    if(good){ SFX.hit(); vib(35); } else { SFX.miss(); vib([60,40,60]); }
+  } else if(G.phase==='score'){
+    const full = Object.values(G.result||{}).some(x=>x.hits===5);
+    if(full){ SFX.fanfare(); vib([50,50,50,50,120]); confetti(120); } else SFX.land();
+  } else if(G.phase==='final'){ SFX.fanfare(); vib([80,60,80,60,200]); confetti(220); }
+  else if(G.phase==='rank' || G.phase==='handoff'){ SFX.tap(); }
+}
+function confetti(n){
+  try{ if(window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches) return; }catch(e){}
+  let cv = document.getElementById('confetti');
+  if(!cv){ cv = document.createElement('canvas'); cv.id = 'confetti'; cv.setAttribute('aria-hidden','true'); document.body.appendChild(cv); }
+  const dpr = Math.min(2, window.devicePixelRatio||1), W = innerWidth, Hh = innerHeight;
+  cv.width = W*dpr; cv.height = Hh*dpr;
+  const c = cv.getContext('2d'); c.setTransform(dpr,0,0,dpr,0,0);
+  const cols = ['#FF5D8F','#FFD23F','#3DDC97','#3A86FF','#B48CFF','#FF8C42'];
+  const ps = Array.from({length:n}, ()=>({
+    x: W*(.2+Math.random()*.6), y: Hh*.42, vx:(Math.random()-.5)*13, vy:-(5+Math.random()*13),
+    a: Math.random()*6, va:(Math.random()-.5)*.35, w:8+Math.random()*9, h:5+Math.random()*6, col:cols[Math.floor(Math.random()*cols.length)]
+  }));
+  const t0 = performance.now();
+  const step = t => {
+    c.clearRect(0,0,W,Hh);
+    ps.forEach(p=>{
+      p.vy += .38; p.vx *= .99; p.x += p.vx; p.y += p.vy; p.a += p.va;
+      c.save(); c.translate(p.x,p.y); c.rotate(p.a);
+      c.fillStyle = p.col; c.strokeStyle = '#1B1B2F'; c.lineWidth = 2;
+      c.fillRect(-p.w/2,-p.h/2,p.w,p.h); c.strokeRect(-p.w/2,-p.h/2,p.w,p.h); c.restore();
+    });
+    if(t - t0 < 3200) requestAnimationFrame(step); else c.clearRect(0,0,W,Hh);
+  };
+  requestAnimationFrame(step);
+}
+function animateSpin(){
+  const el = document.getElementById('wheelRot'); if(!el) return;
+  const id = G.spin.id, target = G.spin.rot;
+  const reduce = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const dur = reduce ? 500 : 3800;
+  animating = true;
+  el.style.transition = `transform ${dur}ms cubic-bezier(.12,.82,.18,1)`;
+  let lastSeg = null, alive = true;
+  const watch = () => {
+    if(!alive) return;
+    try{
+      const m = getComputedStyle(el).transform;
+      if(m && m!=='none'){ const v = m.split('(')[1].split(')')[0].split(','); const ang = (Math.atan2(+v[1], +v[0])*180/Math.PI + 360) % 360; const seg = Math.floor(ang/60); if(lastSeg!==null && seg!==lastSeg) SFX.tick(); lastSeg = seg; }
+    }catch(e){}
+    requestAnimationFrame(watch);
+  };
+  requestAnimationFrame(()=>{ el.style.transform = `rotate(${target}deg)`; requestAnimationFrame(watch); });
+  setTimeout(()=>{
+    alive = false; seenSpin = id; animating = false; renderPending = false;
+    SFX.land(); vib(40); render();
+  }, dur + 120);
+}
+setInterval(()=>{
+  if(!defendT.id || defendT.done) return;
+  const left = Math.max(0, Math.ceil((defendT.end - Date.now())/1000));
+  const ring = document.getElementById('defRing'), lbl = document.getElementById('defLeft');
+  if(ring) ring.style.setProperty('--p', Math.max(0,(defendT.end-Date.now())/(DEFEND_SECS*1000)));
+  if(lbl) lbl.textContent = left;
+  if(left<=5 && left>0 && left<defendT.beeped){ defendT.beeped = left; SFX.beep(); }
+  if(left<=0){ defendT.done = true; SFX.buzz(); vib(300); if(G && G.phase==='reveal') render(); }
+}, 200);
+
+/* ================= acciones de la interfaz ================= */
+function T(){ return view==='setup' ? draft : (G && G.phase==='lobby' && net.isHost ? G.settings : null); }
+function afterSettings(){ if(view==='setup'){ save(); render(); } else commit(); }
+const A = {
+  home(){ view='home'; },
+  setup(){ if(G && G.mode==='local' && !draft.names.some(x=>x)) draft.names = G.players.map(p=>p.name); view='setup'; sheetOpen=false; },
+  online(){ view='online'; net.err=''; getRoom().then(render); },
+  resume(){ view='game'; keepAwake(); },
+  reopen(){ hostRoom(G.code, false); return 'skip'; },
+  rejoin(){ joinRoom(savedJoin.code); return 'skip'; },
+  add(){ if(draft.names.length<MAXP){ draft.names.push(''); if(!draft.touched) draft.turns=defaultTurns(draft.names.length);} },
+  rm(b){ if(draft.names.length>3){ draft.names.splice(+b.dataset.i,1); if(!draft.touched) draft.turns=defaultTurns(draft.names.length);} },
+  tdec(){ const s=T(); if(!s) return 'skip'; s.turns=Math.max(1,s.turns-1); s.touched=true; afterSettings(); return 'skip'; },
+  tinc(){ const s=T(); if(!s) return 'skip'; s.turns=Math.min(8,s.turns+1); s.touched=true; afterSettings(); return 'skip'; },
+  deck(b){ const s=T(); if(!s) return 'skip'; const id=b.dataset.id; s.decks = s.decks.includes(id) ? s.decks.filter(x=>x!==id) : s.decks.concat(id); if(view!=='setup') draft.decks=s.decks.slice(); afterSettings(); return 'skip'; },
+  teams(){ const s=T(); if(!s) return 'skip'; s.teams=!s.teams; draft.teams=s.teams; afterSettings(); return 'skip'; },
+  defend(b){
+    if(b.getAttribute('role')==='switch'){ const s=T(); if(!s) return 'skip'; s.defend=!s.defend; draft.defend=s.defend; afterSettings(); return 'skip'; }
+    dispatch('defend'); return 'skip';
+  },
+  start(){
+    if(!draft.decks.length) return;
+    const players = draft.names.map((nm,i)=>({id:'p'+i, name:cleanName(nm)||((draft.teams?'Equipo ':'Jugador ')+(i+1)), color:PCOL[i], score:0}));
+    startGame('local', players, {decks:draft.decks.slice(), turns:draft.turns, teams:draft.teams, defend:draft.defend});
+    view='game'; keepAwake(); save();
+  },
+  create(){
+    const nm = cleanName((document.getElementById('myname')||{}).value || me.name);
+    if(!nm){ net.err='Poné tu nombre primero.'; return; }
+    me.name = nm; save();
+    hostRoom(newCode(), true); return 'skip';
+  },
+  share(){
+    const url = inviteURL(), text = `¡Sumate a Peor Imposible! Código de sala: ${G.code}`;
+    if(navigator.share){ navigator.share({title:'Peor Imposible', text, url}).catch(()=>{}); }
+    else copyText(url);
+    return 'skip';
+  },
+  copy(){ copyText(inviteURL()); return 'skip'; },
+  noPrefill(){ net.prefill = ''; net.err = ''; },
+  join(){
+    const nm = cleanName((document.getElementById('myname')||{}).value || me.name);
+    me.name = nm; save();
+    joinRoom((document.getElementById('joincode')||{}).value); return 'skip';
+  },
+  leave(){ leaveRoom(); G=null; view='home'; savedJoin=null; save(); },
+  startOnline(){ dispatch('start'); return 'skip'; },
+  spin(){ if(animating) return 'skip'; const b=document.getElementById('spinBtn'); if(b){ b.disabled=true; b.textContent='Girando…'; } dispatch('spin'); return 'skip'; },
+  toCards(){ dispatch('toCards'); return 'skip'; },
+  swap(b){ dispatch('swap',{k:+b.dataset.k}); return 'skip'; },
+  startRank(){ dispatch('startRank'); return 'skip'; },
+  skipMissing(){ dispatch('skipMissing'); return 'skip'; },
+  showRank(){ G.phase='rank'; save(); },
+  notme(){ myRankKey=''; G.phase='handoff'; save(); },
+  pick(b){
+    const k=+b.dataset.k, v=+b.dataset.v, d=myRank, prev=d[k], other=d.indexOf(v);
+    if(prev===v) d[k]=0; else { if(other>-1 && other!==k) d[other]=prev||0; d[k]=v; }
+    justPicked = k+':'+v;
+    SFX.tap(); vib(10);
+  },
+  confirm(){
+    if(!myRank.every(x=>x>0)) return 'skip';
+    const r = myRank.slice();
+    if(!online()){ const p = G.players[(G.victim + G.turn) % G.players.length]; myRankKey=''; dispatch('submitRank',{id:p.id, r}); return 'skip'; }
+    net.sentRank = G.gid+':'+G.round;
+    if(net.isHost){ if(apply('submitRank',{id:me.pid, r}, me.pid)) commit(); else render(); }
+    else { net.nr && net.nr.presence({rank:{gid:G.gid, round:G.round, r}}).catch(()=>{}); render(); }
+    SFX.land(); vib(30); return 'skip';
+  },
+  reveal(){ dispatch('reveal'); return 'skip'; },
+  nextReveal(){ dispatch('nextReveal',{at:G.reveal}); return 'skip'; },
+  nextRound(){ dispatch('nextRound',{at:G.round}); return 'skip'; },
+  final(){ dispatch('final'); return 'skip'; },
+  again(){ dispatch('again'); return 'skip'; },
+  exit(){
+    if(online()){ leaveRoom(); }
+    G=null; H=null; savedJoin=null; view = 'home'; save();
+  },
+  mute(){ muted=!muted; if(!muted){ ac(); SFX.tap(); } save(); },
+  menu(){ sheetOpen=true; confirmEnd=false; },
+  closeMenu(){ sheetOpen=false; },
+  endAsk(){ confirmEnd=true; },
+  endNo(){ confirmEnd=false; },
+  endYes(){
+    sheetOpen=false; confirmEnd=false;
+    if(online() && net.isHost){ G.phase='closed'; publishHost(); const n=net; setTimeout(()=>{ leaveRoom(); }, 1500); G=null; H=null; }
+    else if(online()){ leaveRoom(); G=null; savedJoin=null; }
+    else { G=null; H=null; }
+    view='home'; save();
+  },
+};
+document.addEventListener('click', e=>{
+  if(!muted) ac();
+  if(e.target===$sheet){ sheetOpen=false; render(); return; }
+  const b = e.target.closest('[data-act]'); if(!b || b.disabled) return;
+  const f = A[b.dataset.act]; if(!f) return;
+  if(f(b)!=='skip') render();
+});
+document.addEventListener('keydown', e=>{
+  if(e.key==='Escape' && sheetOpen){ sheetOpen=false; render(); }
+  if(e.key==='Enter' && e.target && e.target.id==='joincode'){ A.join(); }
+});
+document.addEventListener('input', e=>{
+  const t = e.target;
+  if(t.id && t.id.startsWith('pname-')){ draft.names[+t.dataset.i] = t.value; save(); }
+  else if(t.id==='custom'){ draft.custom = t.value; save(); }
+  else if(t.id==='myname'){ me.name = cleanName(t.value); save(); }
+  else if(t.id==='joincode'){ const v = t.value.toUpperCase().replace(/[^A-Z]/g,''); if(v!==t.value) t.value = v; }
+});
+
+/* ================= arranque ================= */
+loadSaved();
+(function(){
+  const hc = (location.hash||'').slice(1).toUpperCase();
+  if(/^[A-Z]{4}$/.test(hc)){ net.prefill = hc; view = 'online'; }
+})();
+render();
+getRoom().then(()=>{ if(view==='home' || view==='online') render(); });
+</script>
+
+</body>
+</html>
