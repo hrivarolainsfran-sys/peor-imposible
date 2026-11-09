@@ -424,7 +424,11 @@ const LET = 'ABCDE';
 const KEY = 'peor-imposible-v2';
 const DEFEND_SECS = 20;
 const MAXP = 10;
-const VICTIM_NOTE = 'La víctima gana lo mismo que el mejor de la ronda, extras incluidos.';
+const VICTIM_NOTE_STD = 'La víctima gana lo mismo que el mejor de la ronda, extras incluidos.';
+const VICTIM_NOTE_DUO = 'Con 2 equipos, la víctima no suma: solo puntúa el equipo que adivina.';
+const duo = () => !!(G && G.players && G.players.length===2);
+const victimNote = () => duo() ? VICTIM_NOTE_DUO : VICTIM_NOTE_STD;
+const minPlayers = teams => teams ? 2 : 3;
 const ICON_PHONE = '<svg viewBox="0 0 40 40" stroke="#1B1B2F" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="11" y="3" width="18" height="34" rx="5" fill="#FFFFFF"/><rect x="14" y="8" width="12" height="20" rx="2" fill="#7CE0FF" stroke-width="2.5"/><path d="M18 32h4" fill="none"/><path d="M31 10q5 4 0 9M34 7q8 7 0 15" fill="none" stroke-width="2.5"/></svg>';
 const ICON_PHONES = '<svg viewBox="0 0 40 40" stroke="#1B1B2F" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="9" width="13" height="24" rx="4" fill="#FF5D8F"/><rect x="25" y="9" width="13" height="24" rx="4" fill="#3DDC97"/><path d="M15 16q5-6 10 0M15 26q5 6 10 0" fill="none" stroke-width="2.5"/><circle cx="20" cy="21" r="2.5" fill="#1B1B2F"/></svg>';
 const ICON_CROWN = '<svg class="crown" viewBox="0 0 84 52" aria-hidden="true"><path d="M8 46 L5 12 L25 28 L42 4 L59 28 L79 12 L76 46 Z" fill="#FFD23F" stroke="#1B1B2F" stroke-width="4" stroke-linejoin="round"/><circle cx="42" cy="32" r="5" fill="#FF5D8F" stroke="#1B1B2F" stroke-width="3"/><circle cx="22" cy="38" r="3.5" fill="#3DDC97" stroke="#1B1B2F" stroke-width="2.5"/><circle cx="62" cy="38" r="3.5" fill="#3A86FF" stroke="#1B1B2F" stroke-width="2.5"/></svg>';
@@ -458,7 +462,7 @@ let defendT = {id:null, end:0, k:-1, beeped:0, done:false};
 const rid = () => Math.random().toString(36).slice(2,10);
 function esc(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
 function shuffle(a){a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
-function defaultTurns(n){return ({3:4,4:3,5:2,6:2,7:2,8:1,9:1,10:1})[n]||2}
+function defaultTurns(n){return ({2:5,3:4,4:3,5:2,6:2,7:2,8:1,9:1,10:1})[n]||2}
 const cleanName = s => String(s||'').replace(new RegExp('[\\u0000-\\u001f\\u200b-\\u200f\\u2028-\\u202e]','g'),'').trim().slice(0,16);
 const mod = id => MODS.find(m=>m.id===id);
 const online = () => !!(G && G.mode==='online');
@@ -545,6 +549,8 @@ function newRound(){
   Object.assign(G, {phase:'spin', mod:null, spin:null, cards:[], rankings:{}, turn:0, reveal:0, defend:null, result:null});
 }
 function validRank(r){ return Array.isArray(r) && r.length===5 && [1,2,3,4,5].every(n=>r.includes(n)); }
+/* Con 2 equipos la partida solo termina cuando los dos adivinaron la misma cantidad de veces. */
+function gameOver(){ return G.round>=G.totalRounds && leaders().length===1 && (!duo() || G.round%2===0); }
 function leaders(){ const mx = Math.max(...G.players.map(p=>p.score)); return G.players.filter(p=>p.score===mx).map(p=>p.id); }
 
 function computeRound(){
@@ -565,7 +571,7 @@ function computeRound(){
     res[p.id] = {hits:n, total, note};
     best = Math.max(best, total);
   });
-  res[vid] = {victim:true, total:best, note:'Víctima: igual al mejor de la ronda'};
+  res[vid] = duo() ? {victim:true, total:0, note:'Víctima: con 2 equipos no suma'} : {victim:true, total:best, note:'Víctima: igual al mejor de la ronda'};
   return res;
 }
 function scoreRound(){
@@ -637,7 +643,7 @@ function apply(type, arg, actor){
   if(on && FLOW[type] && !hostish && G.players[G.victim] && actor!==vic().id) return false;
   switch(type){
     case 'start':
-      if(!hostish || G.phase!=='lobby' || G.players.length<3) return false;
+      if(!hostish || G.phase!=='lobby' || G.players.length<minPlayers(G.settings.teams)) return false;
       startGame('online', G.players.map(p=>({...p, score:0})), G.settings, G.code, G.hostId); return true;
     case 'spin': {
       if(G.phase!=='spin' || G.mod) return false;
@@ -690,12 +696,12 @@ function apply(type, arg, actor){
       scoreRound(); return true;
     case 'nextRound': {
       if(G.phase!=='score' || (arg.at!==undefined && arg.at!==G.round)) return false;
-      if(G.round>=G.totalRounds && leaders().length===1) return false;
+      if(gameOver()) return false;
       if(G.spin) G.wheelRot = G.spin.rot % 360;
       G.round++; G.victim = (G.victim+1) % G.players.length; newRound(); return true;
     }
     case 'final':
-      if(G.phase!=='score' || G.round<G.totalRounds || leaders().length!==1) return false;
+      if(G.phase!=='score' || !gameOver()) return false;
       G.stats = computeStats(); G.phase = 'final'; return true;
     case 'again':
       if(!hostish || G.phase!=='final') return false;
@@ -888,7 +894,7 @@ function hostSync(){
     });
     if(JSON.stringify(list)!==JSON.stringify(G.players)){
       G.players = list;
-      if(!G.settings.touched) G.settings.turns = defaultTurns(Math.max(3,list.length));
+      if(!G.settings.touched) G.settings.turns = defaultTurns(Math.max(minPlayers(G.settings.teams),list.length));
       changed = true;
     }
   }
@@ -985,7 +991,8 @@ const rulesList = () => `<ol class="rules">
   <li>Cada ronda hay una víctima. Gira la ruleta para ver cómo se puntúa.</li>
   <li>Salen cinco escenarios. Cada uno, en secreto, los ordena del 1 (zafa) al 5 (lo peor). La víctima pone lo que piensa de verdad; el resto intenta adivinarlo.</li>
   <li>Se revelan las cartas una por una. Si está activado, la víctima tiene ${DEFEND_SECS} segundos para defender cada respuesta.</li>
-  <li>Cada coincidencia con la víctima vale 1 punto, más lo que diga la ruleta. ${VICTIM_NOTE}</li>
+  <li>Cada coincidencia con la víctima vale 1 punto, más lo que diga la ruleta. ${VICTIM_NOTE_STD}</li>
+  <li>Por equipos se puede jugar desde 2 equipos. ${VICTIM_NOTE_DUO}</li>
   <li>La víctima pasa al siguiente de la lista. Gana quien sume más al final; si hay empate, se juega otra ronda.</li></ol>`;
 const scaleStrip = () => `<div class="scale">${[1,2,3,4,5].map(v=>`<div class="h${v}"><b>${v}</b><small>${WORD[v]}</small></div>`).join('')}</div>`;
 
@@ -1014,7 +1021,7 @@ function vHome(){
     <div class="logo"><span>Peor</span><span>Imposible</span></div>
     <p class="lede">Cinco desgracias, una víctima. Ordenalas del 1 al 5 y adiviná cómo las ordena la víctima.</p>
     ${scaleStrip()}
-    <div class="meta"><span>3 a 10 jugadores</span><span>${DECKS.length} mazos</span><span>${ALL_CARDS} escenarios</span></div>
+    <div class="meta"><span>3 a 10 jugadores o 2 a 10 equipos</span><span>${DECKS.length} mazos</span><span>${ALL_CARDS} escenarios</span></div>
   </section>
   <div class="stack">
     ${local?`<button class="btn" data-act="resume">Seguir la partida · ronda ${G.round}</button>`:''}
@@ -1034,7 +1041,7 @@ function vSetup(){
   <p class="hint">El primero de la lista arranca como víctima. Por tradición, el que peor sobreviviría en una isla desierta.</p></div>
   <ol class="plist">${draft.names.map((nm,i)=>`<li style="--pc:${PCOL[i]}"><span class="dot"></span>
     <input id="pname-${i}" data-i="${i}" aria-label="Nombre ${i+1}" value="${esc(nm)}" placeholder="${T?'Equipo':'Jugador'} ${i+1}" maxlength="16" autocomplete="off" enterkeyhint="next">
-    <button class="rm" data-act="rm" data-i="${i}" aria-label="Quitar ${i+1}" ${n<=3?'disabled':''}>×</button></li>`).join('')}</ol>
+    <button class="rm" data-act="rm" data-i="${i}" aria-label="Quitar ${i+1}" ${n<=minPlayers(T)?'disabled':''}>×</button></li>`).join('')}</ol>
   ${n<MAXP?`<button class="btn ghost" data-act="add">+ Agregar ${T?'equipo':'jugador'}</button>`:''}
   ${settingsHTML(draft, n, true)}
   <details class="box"><summary>Agregar escenarios propios</summary>
@@ -1082,10 +1089,10 @@ function vLobby(){
   <div class="stack"><h2>${G.settings.teams?'Equipos':'Jugadores'} (${n}/${MAXP})</h2>
   <ul class="plist">${G.players.map(p=>`<li style="--pc:${p.color}"><span class="dot"></span><span class="nm">${esc(p.name)}</span><span class="tag">${p.id===G.hostId?'armó la sala':''}${p.id===me.pid?' · vos':''}</span></li>`).join('')}</ul>
   ${extra?`<p class="hint">${extra} más mirando: la sala está llena.</p>`:''}
-  ${n<3?`<p class="hint">Hacen falta al menos 3 para empezar.</p>`:''}</div>
+  ${n<minPlayers(G.settings.teams)?`<p class="hint">Hacen falta al menos ${minPlayers(G.settings.teams)} ${G.settings.teams?'equipos (un celular por equipo)':'jugadores'} para empezar.</p>`:''}</div>
   ${settingsHTML(G.settings, n, net.isHost)}
   ${net.isHost ? `<details class="box"><summary>Agregar escenarios propios</summary><div class="stack"><textarea id="custom" placeholder="Uno por línea">${esc(draft.custom)}</textarea></div></details>
-     <button class="btn" data-act="startOnline" ${n>=3 && G.settings.decks.length?'':'disabled'}>Empezar con ${n}</button>`
+     <button class="btn" data-act="startOnline" ${n>=minPlayers(G.settings.teams) && G.settings.decks.length?'':'disabled'}>Empezar con ${n}</button>`
    : waitMsg(`Esperando que ${esc(host.name)} empiece la partida…`)}`;
 }
 function vSpin(){
@@ -1094,7 +1101,7 @@ function vSpin(){
   let below;
   if(!G.mod) below = canFlow() ? `<button class="btn" id="spinBtn" data-act="spin">Girar la ruleta</button><p class="hint" style="text-align:center">${esc(v.name)} gira y lee en voz alta dónde cayó.</p>` : waitVictim('gire la ruleta');
   else if(!seen) below = '';
-  else below = `${modBox(m,true)}<p class="hint">${VICTIM_NOTE}</p>${canFlow()?flowBtn('Dar vuelta las cartas','toCards'):waitVictim('dé vuelta las cartas')}`;
+  else below = `${modBox(m,true)}<p class="hint">${victimNote()}</p>${canFlow()?flowBtn('Dar vuelta las cartas','toCards'):waitVictim('dé vuelta las cartas')}`;
   return `${topBar()}
   <section class="stack center">
     <p class="eyebrow">La víctima de esta ronda</p>
@@ -1204,9 +1211,11 @@ function vScore(){
   const over = G.round >= G.totalRounds, L = leaders();
   const next = G.players[(G.victim+1)%n];
   let btn;
-  if(over && L.length===1) btn = canFlow() ? `<button class="btn" data-act="final">Ver quién ganó</button>` : waitVictim('muestre el resultado');
+  if(gameOver()) btn = canFlow() ? `<button class="btn" data-act="final">Ver quién ganó</button>` : waitVictim('muestre el resultado');
   else {
-    const tieTxt = over ? `<p class="hint" style="text-align:center">Empate arriba entre ${L.map(id=>esc(pById(id).name)).join(' y ')}. Se juega otra ronda.</p>` : '';
+    const tieTxt = !over ? '' : L.length>1
+      ? `<p class="hint" style="text-align:center">Empate arriba entre ${L.map(id=>esc(pById(id).name)).join(' y ')}. Se juega otra ronda.</p>`
+      : `<p class="hint" style="text-align:center">Falta que ${esc(next.name)} sea víctima para que los dos equipos adivinen la misma cantidad de veces.</p>`;
     btn = tieTxt + (canFlow() ? `<button class="btn" data-act="nextRound">${over?'Desempate':'Siguiente ronda'} · víctima: ${esc(next.name)}</button>` : waitVictim('pase a la siguiente ronda'));
   }
   return `${topBar()}
@@ -1246,7 +1255,7 @@ function vSheet(){
     <button class="switch" role="switch" aria-checked="${!muted}" data-act="mute"><span><b>Sonido y vibración</b><small>Ruleta, aciertos y cuenta regresiva.</small></span><i class="knob"></i></button>
     <div class="stack"><p class="eyebrow">La ruleta</p>
       <ul class="modlist">${MODS.map(m=>`<li><span class="modsym" style="--mc:${m.color}">${m.sym}</span><p><b>${m.name}.</b> ${m.desc}</p></li>`).join('')}</ul>
-      <p class="hint">${VICTIM_NOTE}</p></div>
+      <p class="hint">${victimNote()}</p></div>
     <details class="box"><summary>Reglas</summary>${rulesList()}</details>
     <div class="danger">${confirmEnd
       ? `<p>${online()&&!net.isHost?'¿Salir de la sala?':'¿Terminar la partida? Se pierden los puntos.'}</p><div class="row2"><button class="btn ghost" data-act="endNo">No</button><button class="btn" data-act="endYes">Sí</button></div>`
@@ -1376,11 +1385,13 @@ const A = {
   reopen(){ hostRoom(G.code, false); return 'skip'; },
   rejoin(){ joinRoom(savedJoin.code); return 'skip'; },
   add(){ if(draft.names.length<MAXP){ draft.names.push(''); if(!draft.touched) draft.turns=defaultTurns(draft.names.length);} },
-  rm(b){ if(draft.names.length>3){ draft.names.splice(+b.dataset.i,1); if(!draft.touched) draft.turns=defaultTurns(draft.names.length);} },
+  rm(b){ if(draft.names.length>minPlayers(draft.teams)){ draft.names.splice(+b.dataset.i,1); if(!draft.touched) draft.turns=defaultTurns(draft.names.length);} },
   tdec(){ const s=T(); if(!s) return 'skip'; s.turns=Math.max(1,s.turns-1); s.touched=true; afterSettings(); return 'skip'; },
   tinc(){ const s=T(); if(!s) return 'skip'; s.turns=Math.min(8,s.turns+1); s.touched=true; afterSettings(); return 'skip'; },
   deck(b){ const s=T(); if(!s) return 'skip'; const id=b.dataset.id; s.decks = s.decks.includes(id) ? s.decks.filter(x=>x!==id) : s.decks.concat(id); if(view!=='setup') draft.decks=s.decks.slice(); afterSettings(); return 'skip'; },
-  teams(){ const s=T(); if(!s) return 'skip'; s.teams=!s.teams; draft.teams=s.teams; afterSettings(); return 'skip'; },
+  teams(){ const s=T(); if(!s) return 'skip'; s.teams=!s.teams; draft.teams=s.teams;
+    if(view==='setup' && !s.teams && draft.names.length<3){ draft.names.push(''); if(!draft.touched) draft.turns=defaultTurns(draft.names.length); }
+    afterSettings(); return 'skip'; },
   defend(b){
     if(b.getAttribute('role')==='switch'){ const s=T(); if(!s) return 'skip'; s.defend=!s.defend; draft.defend=s.defend; afterSettings(); return 'skip'; }
     dispatch('defend'); return 'skip';
