@@ -5,7 +5,13 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="description" content="Juego de fiesta: ordená cinco desgracias del 1 al 5 y adiviná cómo las ordena la víctima. Con un celular o uno cada uno.">
 <meta name="theme-color" content="#5BC0EB">
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 40 40%22%3E%3Ccircle cx=%2220%22 cy=%2220%22 r=%2217%22 fill=%22%23FFD23F%22 stroke=%22%231B1B2F%22 stroke-width=%223%22/%3E%3Cpath d=%22M22 6 11 22h7l-2 12 12-17h-7z%22 fill=%22%23FF5D8F%22 stroke=%22%231B1B2F%22 stroke-width=%222.5%22 stroke-linejoin=%22round%22/%3E%3C/svg%3E">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon-192.png" type="image/png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Peor Imposible">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
 <style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style>
 <title>Peor Imposible</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -521,7 +527,10 @@ const SFX = {
   buzz(){ tone(150,.55,'sawtooth',.16,0,110) },
   fanfare(){ [523,659,784,1047].forEach((f,i)=>tone(f,.24,'triangle',.2,i*.12)); tone(1047,.6,'triangle',.16,.5) }
 };
-function vib(p){ if(muted) return; try{ navigator.vibrate && navigator.vibrate(p) }catch(e){} }
+function vib(p){
+  if(muted) return;
+  try{ if(navigator.userActivation && !navigator.userActivation.hasBeenActive) return; navigator.vibrate && navigator.vibrate(p); }catch(e){}
+}
 
 /* ================= wake lock ================= */
 let wakeLock = null;
@@ -1032,7 +1041,9 @@ function vHome(){
       <button class="mode" data-act="online">${ICON_PHONES}<b>Cada uno con su celular</b><small>${roomReady && !net.room ? 'No disponible en esta vista.' : 'Una sala con código. Nadie espera su turno.'}</small></button>
     </div>
   </div>
-  <details class="box"><summary>Cómo se juega</summary>${rulesList()}</details>`;
+  <details class="box"><summary>Cómo se juega</summary>${rulesList()}</details>
+  ${installEvt ? `<button class="btn yellow" data-act="install">Instalar en el celular</button>` : ''}
+  ${!IN_CLAUDE ? `<p class="hint" style="text-align:center"><a href="privacidad.html" style="color:inherit">Política de privacidad</a></p>` : ''}`;
 }
 function vSetup(){
   const n = draft.names.length, T = draft.teams;
@@ -1487,6 +1498,20 @@ document.addEventListener('input', e=>{
 });
 
 /* ================= arranque ================= */
+/* ================= app instalable (solo en la web propia, no dentro de Claude) ================= */
+let installEvt = null;
+if(!IN_CLAUDE){
+  try{ if('serviceWorker' in navigator && location.protocol==='https:') navigator.serviceWorker.register('sw.js').catch(()=>{}); }catch(e){}
+  window.addEventListener('beforeinstallprompt', e=>{ e.preventDefault(); installEvt = e; if(view==='home') render(); });
+  window.addEventListener('appinstalled', ()=>{ installEvt = null; toast('¡Instalado!'); if(view==='home') render(); });
+}
+A.install = function(){
+  if(!installEvt) return 'skip';
+  const ev = installEvt; installEvt = null;
+  try{ ev.prompt(); ev.userChoice.finally(()=>render()); }catch(e){}
+  return 'skip';
+};
+
 loadSaved();
 (function(){
   const hc = (location.hash||'').slice(1).toUpperCase();
